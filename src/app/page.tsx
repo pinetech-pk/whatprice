@@ -12,10 +12,17 @@ import {
   User,
   MessageSquare,
   Send,
+  DollarSign,
+  PieChart,
+  Clock,
+  Globe,
+  Briefcase,
+  Shield,
 } from "lucide-react";
 
 const WhatPriceLanding = () => {
   const [showPitch, setShowPitch] = useState(false);
+  const [showEquity, setShowEquity] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -39,11 +46,9 @@ const WhatPriceLanding = () => {
       alert("Please fill in required fields");
       return;
     }
-    // Store form data (in real app, this would go to a backend)
     console.log("Investor inquiry submitted:", formData);
     setIsSubmitted(true);
 
-    // Reset form after 3 seconds
     setTimeout(() => {
       setIsSubmitted(false);
       setFormData({ name: "", email: "", company: "", message: "" });
@@ -72,8 +77,8 @@ const WhatPriceLanding = () => {
                   Get in Touch
                 </h2>
                 <p className="text-gray-600 mt-2">
-                  Interested in WhatPrice&apos;s rebranding opportunity?
-                  Let&apos;s discuss.
+                  Interested in WhatPrice's investment opportunity? Let's
+                  discuss.
                 </p>
               </div>
 
@@ -84,7 +89,7 @@ const WhatPriceLanding = () => {
                     Thank You!
                   </h3>
                   <p className="text-gray-600">
-                    We&apos;ll be in touch shortly to discuss this exciting
+                    We'll be in touch shortly to discuss this exciting
                     opportunity.
                   </p>
                 </div>
@@ -155,7 +160,7 @@ const WhatPriceLanding = () => {
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
                       <MessageSquare className="w-4 h-4 inline mr-2" />
-                      Message/Interest
+                      Investment Interest
                     </label>
                     <textarea
                       id="message"
@@ -164,7 +169,7 @@ const WhatPriceLanding = () => {
                       value={formData.message}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                      placeholder="Tell us about your interest in this opportunity..."
+                      placeholder="Which investment phase interests you? What value can you add beyond capital?"
                     ></textarea>
                   </div>
 
@@ -174,10 +179,385 @@ const WhatPriceLanding = () => {
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     <Send className="w-5 h-5" />
-                    Submit Inquiry
+                    Submit Investment Inquiry
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showEquity) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="container mx-auto px-4 py-16">
+          <button
+            onClick={() => setShowEquity(false)}
+            className="mb-8 text-blue-600 hover:text-blue-800 flex items-center gap-2 transition-colors"
+          >
+            ← Back to Pitch
+          </button>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-3 bg-green-600 text-white px-6 py-3 rounded-full mb-6">
+                <PieChart className="w-6 h-6" />
+                <span className="font-semibold text-lg">
+                  Equity Structure & Investment Terms
+                </span>
+              </div>
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">
+                Strategic <span className="text-blue-600">Partnership</span>{" "}
+                Opportunity
+              </h1>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Join us in building Pakistan's premier vendor-first marketplace
+              </p>
+            </div>
+
+            {/* Founder Profile */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 mb-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Shield className="w-7 h-7 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    Founder Credentials
+                  </h3>
+                  <p className="text-gray-600">
+                    Sole founder with proven track record
+                  </p>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className="text-3xl font-bold text-blue-600">9 Years</p>
+                  <p className="text-sm text-gray-600">
+                    Building & Operating WhatPrice
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className="text-3xl font-bold text-green-600">100%</p>
+                  <p className="text-sm text-gray-600">Bootstrapped Success</p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <p className="text-3xl font-bold text-purple-600">
+                    Full-Stack
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Technical & Business Expertise
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Investment Phases */}
+            <div className="mb-12">
+              <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+                Investment Phases
+              </h3>
+
+              <div className="space-y-6">
+                {/* Phase 1 */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-blue-200">
+                  <div className="flex items-start justify-between mb-6">
+                    <div>
+                      <div className="inline-block bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                        Phase 1: Web Development
+                      </div>
+                      <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                        Angel Investment Round
+                      </h4>
+                      <p className="text-gray-600">
+                        Founder-led web development with proven expertise
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600 mb-1">Investment</p>
+                      <p className="text-3xl font-bold text-blue-600">
+                        $11-12K
+                      </p>
+                      <p className="text-sm text-gray-500">PKR 3-3.5M</p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white rounded-lg p-4">
+                      <Clock className="w-5 h-5 text-blue-600 mb-2" />
+                      <p className="font-semibold text-gray-900">Timeline</p>
+                      <p className="text-gray-600 text-sm">6-8 months</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4">
+                      <PieChart className="w-5 h-5 text-blue-600 mb-2" />
+                      <p className="font-semibold text-gray-900">
+                        Equity Offered
+                      </p>
+                      <p className="text-gray-600 text-sm">8-10%</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4">
+                      <Target className="w-5 h-5 text-blue-600 mb-2" />
+                      <p className="font-semibold text-gray-900">
+                        Use of Funds
+                      </p>
+                      <p className="text-gray-600 text-sm">Founder salary</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-blue-200 pt-4">
+                    <p className="text-sm text-gray-700">
+                      <strong>Deliverables:</strong> Full-featured web
+                      application with vendor dashboard, subscription
+                      management, and automated pricing system
+                    </p>
+                  </div>
+                </div>
+
+                {/* Phase 2 */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-green-200">
+                  <div className="flex items-start justify-between mb-6">
+                    <div>
+                      <div className="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                        Phase 2: Mobile Development
+                      </div>
+                      <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                        Expansion Round
+                      </h4>
+                      <p className="text-gray-600">
+                        Professional mobile app development (iOS & Android)
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600 mb-1">Investment</p>
+                      <p className="text-3xl font-bold text-green-600">
+                        $14-18K
+                      </p>
+                      <p className="text-sm text-gray-500">PKR 4-5M</p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white rounded-lg p-4">
+                      <Clock className="w-5 h-5 text-green-600 mb-2" />
+                      <p className="font-semibold text-gray-900">Timeline</p>
+                      <p className="text-gray-600 text-sm">4-5 months</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4">
+                      <PieChart className="w-5 h-5 text-green-600 mb-2" />
+                      <p className="font-semibold text-gray-900">
+                        Additional Equity
+                      </p>
+                      <p className="text-gray-600 text-sm">5-7%</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-4">
+                      <Target className="w-5 h-5 text-green-600 mb-2" />
+                      <p className="font-semibold text-gray-900">
+                        Use of Funds
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        Outsourced development
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-green-200 pt-4">
+                    <p className="text-sm text-gray-700">
+                      <strong>Deliverables:</strong> Native mobile apps for
+                      vendors and customers, real-time synchronization, push
+                      notifications
+                    </p>
+                  </div>
+                </div>
+
+                {/* Combined Package */}
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-8">
+                  <div className="text-center mb-6">
+                    <h4 className="text-3xl font-bold mb-2">
+                      Complete Package Deal
+                    </h4>
+                    <p className="text-xl opacity-90">
+                      Commit to full development cycle for preferred terms
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <div className="text-center bg-white/20 rounded-lg p-4">
+                      <DollarSign className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-bold text-2xl">$25-30K</p>
+                      <p className="text-sm opacity-90">Total Investment</p>
+                    </div>
+                    <div className="text-center bg-white/20 rounded-lg p-4">
+                      <PieChart className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-bold text-2xl">15-18%</p>
+                      <p className="text-sm opacity-90">Total Equity</p>
+                    </div>
+                    <div className="text-center bg-white/20 rounded-lg p-4">
+                      <Clock className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-bold text-2xl">10-12</p>
+                      <p className="text-sm opacity-90">Months to Market</p>
+                    </div>
+                    <div className="text-center bg-white/20 rounded-lg p-4">
+                      <Shield className="w-8 h-8 mx-auto mb-2" />
+                      <p className="font-bold text-2xl">Board Seat</p>
+                      <p className="text-sm opacity-90">Advisory Rights</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cap Table */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Proposed Cap Table Structure
+              </h3>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Founder (CEO/CTO)
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Protected equity, immediate vesting
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-600">62-65%</p>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                      <Briefcase className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Angel Investor(s)
+                      </p>
+                      <p className="text-sm text-gray-600">Phase 1 + Phase 2</p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">15-18%</p>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">ESOP Pool</p>
+                      <p className="text-sm text-gray-600">
+                        Future key employees
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-600">10-12%</p>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Reserved for Series A
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Future growth capital
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-600">10-15%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key Terms */}
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <h4 className="text-xl font-bold text-gray-900 mb-4">
+                  Investor Rights
+                </h4>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      Board observer rights (15%+ investors)
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      Monthly reporting on KPIs
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      Pro-rata rights in future rounds
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      1x liquidation preference
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                <h4 className="text-xl font-bold text-gray-900 mb-4">
+                  Founder Protections
+                </h4>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      Majority board control maintained
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      No forced exit provisions
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      Immediate vesting (9 years earned)
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <span className="text-gray-700">
+                      Key decision veto rights
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={() => setShowForm(true)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 mx-auto"
+              >
+                <Briefcase className="w-6 h-6" />
+                Express Investment Interest
+                <ArrowRight className="w-6 h-6" />
+              </button>
             </div>
           </div>
         </div>
@@ -201,46 +581,173 @@ const WhatPriceLanding = () => {
               <div className="inline-flex items-center gap-3 bg-blue-600 text-white px-6 py-3 rounded-full mb-6">
                 <TrendingUp className="w-6 h-6" />
                 <span className="font-semibold text-lg">
-                  Investment Opportunity
+                  Investment Opportunity - Pakistan Market
                 </span>
               </div>
               <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                WhatPrice Rebrand <span className="text-blue-600">Pitch</span>
+                WhatPrice{" "}
+                <span className="text-blue-600">Investment Pitch</span>
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                From Pakistan&apos;s leading price discovery platform to a
-                scalable subscription-based marketplace
+                Transforming Pakistan's trusted price platform into a scalable
+                vendor marketplace
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 mb-16">
+            {/* Market Opportunity */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 mb-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Pakistan Market Reality
+                </h3>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="font-semibold text-blue-800 mb-1">
+                      Market Size
+                    </p>
+                    <p className="text-3xl font-bold text-blue-600">220M</p>
+                    <p className="text-sm text-blue-700">
+                      Population with growing digital adoption
+                    </p>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="font-semibold text-green-800 mb-1">
+                      Internet Users
+                    </p>
+                    <p className="text-3xl font-bold text-green-600">70M+</p>
+                    <p className="text-sm text-green-700">
+                      Active internet users
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <p className="font-semibold text-purple-800 mb-1">
+                      Smartphone Users
+                    </p>
+                    <p className="text-3xl font-bold text-purple-600">50M+</p>
+                    <p className="text-sm text-purple-700">
+                      Growing mobile-first economy
+                    </p>
+                  </div>
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <p className="font-semibold text-orange-800 mb-1">
+                      E-commerce Growth
+                    </p>
+                    <p className="text-3xl font-bold text-orange-600">35%</p>
+                    <p className="text-sm text-orange-700">
+                      YoY growth post-COVID
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <p className="text-sm text-yellow-800">
+                  <strong>Key Advantage:</strong> First-mover advantage in
+                  vendor subscription model for price discovery in Pakistan.
+                  Less competition than Western markets.
+                </p>
+              </div>
+            </div>
+
+            {/* Financial Projections */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-8">
+              <h3 className="text-3xl font-bold text-center mb-8">
+                Revenue Model & Projections
+              </h3>
+
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white/20 rounded-xl p-6 text-center">
+                  <p className="text-lg font-semibold mb-2">Year 1</p>
+                  <p className="text-3xl font-bold mb-1">500</p>
+                  <p className="text-sm opacity-90">Paying Vendors</p>
+                  <p className="text-xl font-semibold mt-3">PKR 6M</p>
+                  <p className="text-xs opacity-90">($21K revenue)</p>
+                </div>
+
+                <div className="bg-white/20 rounded-xl p-6 text-center">
+                  <p className="text-lg font-semibold mb-2">Year 2</p>
+                  <p className="text-3xl font-bold mb-1">2,000</p>
+                  <p className="text-sm opacity-90">Paying Vendors</p>
+                  <p className="text-xl font-semibold mt-3">PKR 24M</p>
+                  <p className="text-xs opacity-90">($85K revenue)</p>
+                </div>
+
+                <div className="bg-white/20 rounded-xl p-6 text-center">
+                  <p className="text-lg font-semibold mb-2">Year 3</p>
+                  <p className="text-3xl font-bold mb-1">5,000</p>
+                  <p className="text-sm opacity-90">Paying Vendors</p>
+                  <p className="text-xl font-semibold mt-3">PKR 60M</p>
+                  <p className="text-xs opacity-90">($215K revenue)</p>
+                </div>
+              </div>
+
+              <div className="border-t border-white border-opacity-30 pt-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-semibold mb-2">Revenue Streams:</p>
+                    <ul className="text-sm space-y-1 opacity-90">
+                      <li>• Basic Plan: PKR 500/month ($1.80)</li>
+                      <li>• Professional: PKR 2,000/month ($7)</li>
+                      <li>• Enterprise: PKR 5,000/month ($18)</li>
+                      <li>• Priority placement credits</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-2">Unit Economics:</p>
+                    <ul className="text-sm space-y-1 opacity-90">
+                      <li>• CAC: PKR 1,500 ($5.40)</li>
+                      <li>• LTV: PKR 24,000 ($86)</li>
+                      <li>• Gross Margin: 85%</li>
+                      <li>• Payback: 3 months</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Competitive Advantages */}
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
               <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
                 <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-6">
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Proven Track Record
+                  Proven Assets
                 </h3>
                 <ul className="space-y-3 text-gray-600">
                   <li className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                     <span>
-                      <strong>9 years</strong> of successful operations with
-                      high organic traffic
+                      <strong>9 years</strong> of brand trust and market
+                      presence
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                     <span>
-                      Trusted by vendors and consumers across{" "}
-                      <strong>Karachi, Lahore, and Islamabad</strong>
+                      <strong>SEO authority</strong> with high organic traffic
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                     <span>
-                      <strong>Recognized brand</strong> for accurate price
-                      comparison in Pakistan
+                      <strong>Vendor relationships</strong> across major cities
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                    <span>
+                      <strong>Deep market knowledge</strong> of Pakistan's
+                      pricing dynamics
                     </span>
                   </li>
                 </ul>
@@ -251,83 +758,105 @@ const WhatPriceLanding = () => {
                   <Target className="w-6 h-6 text-purple-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Rebrand Opportunity
+                  Execution Strategy
                 </h3>
                 <div className="space-y-4">
-                  <div className="p-4 bg-red-50 rounded-lg">
-                    <p className="text-sm font-medium text-red-800">
-                      Previous Model
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-800 mb-1">
+                      Phase 1
                     </p>
-                    <p className="text-red-700">100% Google AdSense revenue</p>
-                  </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <p className="text-sm font-medium text-green-800">
-                      New Model
-                    </p>
-                    <p className="text-green-700">
-                      Vendor subscriptions + premium visibility credits
+                    <p className="text-gray-700 text-sm">
+                      Launch web platform with core cities
                     </p>
                   </div>
-                  <p className="text-gray-600">
-                    Free tier for limited listings, premium tier unlocks scale
-                    and priority placement
-                  </p>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-800 mb-1">
+                      Phase 2
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                      Mobile apps for vendor convenience
+                    </p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-800 mb-1">
+                      Phase 3
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                      Expand to tier-2 cities
+                    </p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-800 mb-1">
+                      Phase 4
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                      Regional expansion (Bangladesh, Sri Lanka)
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-12">
-              <div className="max-w-3xl mx-auto text-center">
-                <h3 className="text-3xl font-bold mb-4">Why Now?</h3>
-                <div className="grid md:grid-cols-3 gap-6 mt-8">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Users className="w-8 h-8" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Market Maturity</h4>
-                    <p className="text-sm opacity-90">
-                      Vendors are ready to pay for exposure and visibility
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <TrendingUp className="w-8 h-8" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Technology Ready</h4>
-                    <p className="text-sm opacity-90">
-                      Automation & AI reduce manual work—scalability achieved
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Target className="w-8 h-8" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Brand Trust</h4>
-                    <p className="text-sm opacity-90">
-                      Opportunity to revive trusted brand with sustainable model
-                    </p>
-                  </div>
+            {/* Exit Strategy */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 mb-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Exit Opportunities
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <Briefcase className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                  <p className="font-semibold text-gray-900 mb-2">
+                    Strategic Acquisition
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    E-commerce players like Daraz, or regional marketplaces
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <Globe className="w-8 h-8 text-green-600 mx-auto mb-3" />
+                  <p className="font-semibold text-gray-900 mb-2">
+                    Regional Expansion
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Scale to emerging markets with similar dynamics
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <p className="font-semibold text-gray-900 mb-2">
+                    Series A/B Funding
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Attract growth capital at higher valuations
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="text-center">
               <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                Next Step
+                Ready to Join Our Journey?
               </h3>
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                Rebrand WhatPrice into a vendor-first subscription marketplace.
-                We&apos;re seeking strategic partners, early adopters, and
-                investors to scale this proven concept.
+                We're seeking strategic partners who understand the Pakistan
+                market and can add value beyond capital.
               </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 mx-auto"
-              >
-                <Mail className="w-6 h-6" />
-                Connect With Us
-                <ArrowRight className="w-6 h-6" />
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => setShowEquity(true)}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 justify-center"
+                >
+                  <PieChart className="w-6 h-6" />
+                  View Equity Structure
+                </button>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 justify-center"
+                >
+                  <Mail className="w-6 h-6" />
+                  Contact Us
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -341,243 +870,188 @@ const WhatPriceLanding = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <div className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
-            Pakistan&apos;s Premier Price Discovery Platform
+            Pakistan's Premier Price Discovery Platform
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-6">
-            <span className="text-blue-600">WhatPrice</span> Evolution
+            <span className="text-blue-600">WhatPrice</span> Investment
+            Opportunity
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            9 years of proven success, now ready for transformation. From
-            content-driven platform to vendor-first marketplace.
+            9 years of proven success. Now seeking strategic partners to
+            transform into Pakistan's leading vendor marketplace.
           </p>
+
+          {/* Investment Highlight */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl p-6">
+              <div className="flex items-center justify-center gap-8">
+                <div className="text-center">
+                  <p className="text-3xl font-bold">$25-30K</p>
+                  <p className="text-sm opacity-90">Total Investment</p>
+                </div>
+                <div className="w-px h-12 bg-white opacity-30"></div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold">15-18%</p>
+                  <p className="text-sm opacity-90">Equity Offered</p>
+                </div>
+                <div className="w-px h-12 bg-white opacity-30"></div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold">10-12</p>
+                  <p className="text-sm opacity-90">Months to Market</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => setShowPitch(true)}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 justify-center"
             >
-              View Rebrand Pitch
+              View Investment Pitch
               <ArrowRight className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setShowEquity(true)}
+              className="bg-white text-blue-600 border-2 border-blue-600 py-4 px-8 rounded-full font-semibold text-lg hover:bg-blue-50 transition-all duration-300 flex items-center gap-3 justify-center"
+            >
+              <PieChart className="w-6 h-6" />
+              Equity Structure
             </button>
           </div>
         </div>
 
-        {/* Journey Section */}
+        {/* Quick Stats */}
         <div className="max-w-6xl mx-auto mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              The WhatPrice Journey
-            </h2>
-            <p className="text-xl text-gray-600">
-              A decade of building Pakistan&apos;s most trusted price comparison
-              platform
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Content & Accuracy Excellence
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Two years dedicated to building reliable content pipeline with
-                  direct vendor submissions and manual data collection across
-                  major Pakistani cities.
-                </p>
-                <p className="text-gray-600">
-                  Achieved deep familiarity with Karachi, Lahore, and Islamabad
-                  pricing structures, enabling accurate inter-city price
-                  estimations.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <Users className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Audience Impact
-                  </h3>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-600">
-                      <strong>Primary:</strong> End customers searching for
-                      competitive prices
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <p className="text-gray-600">
-                      <strong>Secondary:</strong> Shopkeepers analyzing
-                      wholesale vs retail trends
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center">
+              <Clock className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900">9 Years</p>
+              <p className="text-sm text-gray-600">Market Presence</p>
             </div>
-
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <Target className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Growth Strategy
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  SEO-driven organic growth with Google search as the primary
-                  traffic source. Strategic marketing campaigns boosted
-                  authority and early adoption.
-                </p>
-                <p className="text-gray-600">
-                  Revenue generated entirely through Google AdSense, focusing on
-                  traffic growth as the key success metric.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Category Evolution
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Started broadly with Electronics → Appliances → Lifestyle,
-                  then strategically narrowed to high-demand categories with
-                  sustainable update cycles.
-                </p>
-                <p className="text-gray-600">
-                  Geographic focus on major cities with selective expansion to
-                  Faisalabad and Multan for unique products.
-                </p>
-              </div>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center">
+              <Users className="w-8 h-8 text-green-600 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900">3 Cities</p>
+              <p className="text-sm text-gray-600">Coverage</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center">
+              <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900">85%</p>
+              <p className="text-sm text-gray-600">Gross Margin</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 text-center">
+              <Target className="w-8 h-8 text-orange-600 mx-auto mb-3" />
+              <p className="text-3xl font-bold text-gray-900">PKR 60M</p>
+              <p className="text-sm text-gray-600">Year 3 Target</p>
             </div>
           </div>
         </div>
 
-        {/* Rebranding Plan */}
+        {/* Key Investment Points */}
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              The Rebranding Vision
+              Why Invest in WhatPrice?
             </h2>
             <p className="text-xl text-gray-600">
-              Transforming from content platform to vendor-first marketplace
+              A unique opportunity to enter Pakistan's growing digital economy
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white mb-12">
-            <div className="max-w-4xl mx-auto">
-              <h3 className="text-3xl font-bold text-center mb-8">
-                Revenue Model Transformation
-              </h3>
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white bg-opacity-10 rounded-xl p-6">
-                  <h4 className="text-xl font-bold mb-4">Previous Model</h4>
-                  <div className="space-y-2">
-                    <p>• 100% Google AdSense dependency</p>
-                    <p>• Traffic-focused growth strategy</p>
-                    <p>• Free vendor participation</p>
-                    <p>• No direct vendor monetization</p>
-                  </div>
-                </div>
-                <div className="bg-white bg-opacity-10 rounded-xl p-6">
-                  <h4 className="text-xl font-bold mb-4">New Model</h4>
-                  <div className="space-y-2">
-                    <p>• Vendor subscription plans</p>
-                    <p>• Free tier with limited listings</p>
-                    <p>• Premium tier with expanded features</p>
-                    <p>• Credits for sticky posts & priority placement</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <div className="grid lg:grid-cols-3 gap-8 mb-12">
             <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                Key Advantages
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  </div>
-                  <p className="text-gray-600">
-                    <strong>Self-Updating:</strong> Vendors maintain their own
-                    listings, ensuring automatic accuracy
-                  </p>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  </div>
-                  <p className="text-gray-600">
-                    <strong>Scalable Model:</strong> Reduces reliance on manual
-                    updates and data collection
-                  </p>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                  </div>
-                  <p className="text-gray-600">
-                    <strong>Sustainable Revenue:</strong> Direct monetization
-                    from vendor services
-                  </p>
-                </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+                <Shield className="w-6 h-6 text-blue-600" />
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                De-Risked Investment
+              </h3>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>9 years operational history</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Established brand trust</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Founder with proven expertise</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Clear path to profitability</span>
+                </li>
+              </ul>
             </div>
 
             <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                Focus Transformation
-              </h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="font-semibold text-blue-800 mb-2">
-                    Primary Target
-                  </p>
-                  <p className="text-blue-700">
-                    Vendors and retailers as direct paying clients
-                  </p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="font-semibold text-green-800 mb-2">
-                    Continued Benefit
-                  </p>
-                  <p className="text-green-700">
-                    End customers maintain free access to price discovery
-                  </p>
-                </div>
-                <p className="text-gray-600 text-sm">
-                  This dual-focus approach ensures platform value while creating
-                  sustainable revenue streams.
-                </p>
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-6">
+                <Globe className="w-6 h-6 text-green-600" />
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Market Opportunity
+              </h3>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>220M population market</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>35% YoY e-commerce growth</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>First-mover advantage</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Regional expansion potential</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+                <DollarSign className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Attractive Terms
+              </h3>
+              <ul className="space-y-3 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Low entry valuation</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Board observer rights</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Pro-rata rights</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 mt-1 flex-shrink-0" />
+                  <span>Clear exit strategy</span>
+                </li>
+              </ul>
             </div>
           </div>
 
           <div className="text-center">
+            <p className="text-lg text-gray-600 mb-6">
+              Join us in building Pakistan's next unicorn from a proven
+              foundation
+            </p>
             <button
-              onClick={() => setShowPitch(true)}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 mx-auto"
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 px-8 rounded-full font-semibold text-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-3 mx-auto"
             >
-              View Complete Pitch
+              <Briefcase className="w-6 h-6" />
+              Express Investment Interest
               <ArrowRight className="w-6 h-6" />
             </button>
           </div>
