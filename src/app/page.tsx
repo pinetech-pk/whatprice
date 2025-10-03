@@ -77,8 +77,8 @@ const WhatPriceLanding = () => {
                   Get in Touch
                 </h2>
                 <p className="text-gray-600 mt-2">
-                  Interested in WhatPrice's investment opportunity? Let's
-                  discuss.
+                  Interested in WhatPrice&apos;s investment opportunity?
+                  Let&apos;s discuss.
                 </p>
               </div>
 
@@ -89,7 +89,7 @@ const WhatPriceLanding = () => {
                     Thank You!
                   </h3>
                   <p className="text-gray-600">
-                    We'll be in touch shortly to discuss this exciting
+                    We&apos;ll be in touch shortly to discuss this exciting
                     opportunity.
                   </p>
                 </div>
@@ -214,7 +214,8 @@ const WhatPriceLanding = () => {
                 Opportunity
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Join us in building Pakistan's premier vendor-first marketplace
+                Join us in building Pakistan&apos;s premier vendor-first
+                marketplace
               </p>
             </div>
 
@@ -589,8 +590,8 @@ const WhatPriceLanding = () => {
                 <span className="text-blue-600">Investment Pitch</span>
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Transforming Pakistan's trusted price platform into a scalable
-                vendor marketplace
+                Transforming Pakistan&apos;s trusted price platform into a
+                scalable vendor marketplace
               </p>
             </div>
 
@@ -746,7 +747,7 @@ const WhatPriceLanding = () => {
                   <li className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                     <span>
-                      <strong>Deep market knowledge</strong> of Pakistan's
+                      <strong>Deep market knowledge</strong> of Pakistan&apos;s
                       pricing dynamics
                     </span>
                   </li>
@@ -838,8 +839,8 @@ const WhatPriceLanding = () => {
                 Ready to Join Our Journey?
               </h3>
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                We're seeking strategic partners who understand the Pakistan
-                market and can add value beyond capital.
+                We&apos;re seeking strategic partners who understand the
+                Pakistan market and can add value beyond capital.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
@@ -870,7 +871,7 @@ const WhatPriceLanding = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <div className="inline-block bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-6">
-            Pakistan's Premier Price Discovery Platform
+            Pakistan&apos;s Premier Price Discovery Platform
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-6">
             <span className="text-blue-600">WhatPrice</span> Investment
@@ -878,7 +879,7 @@ const WhatPriceLanding = () => {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             9 years of proven success. Now seeking strategic partners to
-            transform into Pakistan's leading vendor marketplace.
+            transform into Pakistan&apos;s leading vendor marketplace.
           </p>
 
           {/* Investment Highlight */}
@@ -954,7 +955,8 @@ const WhatPriceLanding = () => {
               Why Invest in WhatPrice?
             </h2>
             <p className="text-xl text-gray-600">
-              A unique opportunity to enter Pakistan's growing digital economy
+              A unique opportunity to enter Pakistan&apos;s growing digital
+              economy
             </p>
           </div>
 
@@ -1043,7 +1045,7 @@ const WhatPriceLanding = () => {
 
           <div className="text-center">
             <p className="text-lg text-gray-600 mb-6">
-              Join us in building Pakistan's next unicorn from a proven
+              Join us in building Pakistan&apos;s next unicorn from a proven
               foundation
             </p>
             <button
