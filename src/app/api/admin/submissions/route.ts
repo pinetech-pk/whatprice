@@ -4,6 +4,17 @@ import { cookies } from "next/headers";
 import fs from "fs/promises";
 import path from "path";
 
+// Define the type for a submission
+interface Submission {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+  submittedAt: string;
+  ipAddress?: string;
+}
+
 const DATA_FILE = path.join(process.cwd(), "data", "submissions.json");
 
 // Simple auth check (in production, validate the session token properly)
@@ -29,7 +40,7 @@ export async function GET() {
 
     // Read submissions
     const fileContent = await fs.readFile(DATA_FILE, "utf-8");
-    const submissions = JSON.parse(fileContent);
+    const submissions: Submission[] = JSON.parse(fileContent);
 
     return NextResponse.json({ submissions }, { status: 200 });
   } catch (error) {
@@ -57,10 +68,10 @@ export async function DELETE(request: Request) {
 
     // Read submissions
     const fileContent = await fs.readFile(DATA_FILE, "utf-8");
-    let submissions = JSON.parse(fileContent);
+    let submissions: Submission[] = JSON.parse(fileContent);
 
-    // Filter out the submission to delete
-    submissions = submissions.filter((sub: any) => sub.id !== id);
+    // Filter out the submission to delete - now properly typed!
+    submissions = submissions.filter((sub: Submission) => sub.id !== id);
 
     // Write back to file
     await fs.writeFile(DATA_FILE, JSON.stringify(submissions, null, 2));
