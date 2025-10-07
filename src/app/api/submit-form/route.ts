@@ -1,7 +1,6 @@
 // src/app/api/submit-form/route.ts
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import { put, list } from "@vercel/blob";
 
 interface FormSubmission {
   id: string;
@@ -13,29 +12,10 @@ interface FormSubmission {
   ipAddress?: string;
 }
 
-const DATA_FILE = path.join(process.cwd(), "data", "submissions.json");
-
-async function ensureDataFile() {
-  const dir = path.join(process.cwd(), "data");
-
-  try {
-    await fs.access(dir);
-  } catch {
-    await fs.mkdir(dir, { recursive: true });
-  }
-
-  try {
-    await fs.access(DATA_FILE);
-  } catch {
-    await fs.writeFile(DATA_FILE, JSON.stringify([], null, 2));
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Validate required fields
     if (!body.name || !body.email) {
       return NextResponse.json(
         { error: "Name and email are required" },
@@ -43,12 +23,26 @@ export async function POST(request: Request) {
       );
     }
 
-    // Ensure data file exists
-    await ensureDataFile();
+    // Try to get existing submissions
+    let submissions: FormSubmission[] = [];
+    try {
+      const { blobs } = await list({
+        prefix: "submissions",
+      });
 
-    // Read existing submissions
-    const fileContent = await fs.readFile(DATA_FILE, "utf-8");
-    const submissions: FormSubmission[] = JSON.parse(fileContent);
+      // Find our submissions file
+      const submissionsBlob = blobs.find((blob) =>
+        blob.pathname.includes("submissions.json")
+      );
+
+      if (submissionsBlob) {
+        // Fetch the content from the blob URL
+        const response = await fetch(submissionsBlob.url);
+        submissions = await response.json();
+      }
+    } catch (error) {
+      console.log("No existing submissions found, starting fresh");
+    }
 
     // Create new submission
     const newSubmission: FormSubmission = {
@@ -64,8 +58,17 @@ export async function POST(request: Request) {
     // Add to submissions
     submissions.push(newSubmission);
 
-    // Write back to file
-    await fs.writeFile(DATA_FILE, JSON.stringify(submissions, null, 2));
+    // Save to Blob (this will overwrite the existing file)
+    const blob = await put(
+      "submissions.json",
+      JSON.stringify(submissions, null, 2),
+      {
+        access: "public",
+        contentType: "application/json",
+      }
+    );
+
+    console.log("Submission saved successfully:", blob.url);
 
     return NextResponse.json(
       { success: true, message: "Form submitted successfully" },
