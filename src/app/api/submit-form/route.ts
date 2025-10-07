@@ -65,6 +65,8 @@ export async function POST(request: Request) {
       {
         access: "public",
         contentType: "application/json",
+        addRandomSuffix: false,
+        allowOverwrite: true, // Add this line
       }
     );
 

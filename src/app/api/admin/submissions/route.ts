@@ -81,6 +81,8 @@ export async function DELETE(request: Request) {
     await put("submissions.json", JSON.stringify(submissions, null, 2), {
       access: "public",
       contentType: "application/json",
+      addRandomSuffix: false,
+      allowOverwrite: true, // Add this line
     });
 
     return NextResponse.json(
