@@ -41,19 +41,36 @@ const WhatPriceLanding = () => {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.email) {
       alert("Please fill in required fields");
       return;
     }
-    console.log("Investor inquiry submitted:", formData);
-    setIsSubmitted(true);
 
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", email: "", company: "", message: "" });
-      setShowForm(false);
-    }, 3000);
+    try {
+      const response = await fetch("/api/submit-form", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setFormData({ name: "", email: "", company: "", message: "" });
+          setShowForm(false);
+        }, 3000);
+      } else {
+        alert("Failed to submit form. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   if (showForm) {

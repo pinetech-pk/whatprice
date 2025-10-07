@@ -1,36 +1,213 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WhatPrice Investment Platform - Setup Guide
 
-## Getting Started
+## Overview
 
-First, run the development server:
+This is the investment pitch platform for WhatPrice with form submission handling and admin dashboard functionality.
+
+## Features
+
+- 🎯 Investment pitch presentation
+- 📝 Form submission system (saves to JSON file)
+- 🔐 Secure admin dashboard
+- 📊 View and manage investor inquiries
+- 💾 Export data as JSON
+- 🔍 Search and filter submissions
+
+## Setup Instructions
+
+### 1. Install Dependencies
 
 ```bash
+npm install
+# or
+yarn install
+```
+
+### 2. Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# Admin Credentials
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_secure_password_here
+
+# Optional: Session Secret
+SESSION_SECRET=your_random_32_char_string_here
+```
+
+### 3. Create Data Directory
+
+The application will automatically create a `data` directory when the first form is submitted. This directory will store the `submissions.json` file.
+
+### 4. Run the Application
+
+```bash
+# Development
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Production build
+npm run build
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Access Points
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Main Application
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **URL**: `http://localhost:3000`
+- **Description**: Main investment pitch page with form
 
-## Learn More
+### Admin Dashboard
 
-To learn more about Next.js, take a look at the following resources:
+- **URL**: `http://localhost:3000/admin`
+- **Default Credentials**:
+  - Username: `admin`
+  - Password: `whatprice2025!`
+- **⚠️ IMPORTANT**: Change these credentials in production!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## File Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── page.tsx                 # Main landing page
+│   ├── admin/
+│   │   └── page.tsx             # Admin dashboard
+│   └── api/
+│       ├── submit-form/
+│       │   └── route.ts         # Form submission endpoint
+│       └── admin/
+│           ├── login/route.ts   # Admin login
+│           ├── logout/route.ts  # Admin logout
+│           ├── submissions/route.ts # Get/Delete submissions
+│           └── check-auth/route.ts # Auth check
+│
+data/
+└── submissions.json             # Form submissions storage (auto-created)
+```
 
-## Deploy on Vercel
+## API Endpoints
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Public Endpoints
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `POST /api/submit-form` - Submit investment inquiry form
+
+### Admin Endpoints (Authentication Required)
+
+- `POST /api/admin/login` - Admin login
+- `POST /api/admin/logout` - Admin logout
+- `GET /api/admin/check-auth` - Check authentication status
+- `GET /api/admin/submissions` - Get all submissions
+- `DELETE /api/admin/submissions?id={id}` - Delete a submission
+
+## Security Considerations
+
+### For Development
+
+- Default credentials are provided for quick testing
+- Data is stored in a local JSON file
+
+### For Production
+
+1. **Change Admin Credentials**: Update `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env.local`
+2. **Use HTTPS**: Deploy with SSL certificate
+3. **Session Management**: Consider using proper session management (Redis, JWT)
+4. **Database**: Consider migrating to a proper database (PostgreSQL, MongoDB)
+5. **Rate Limiting**: Implement rate limiting on form submissions
+6. **Backup**: Regularly backup the `data/submissions.json` file
+
+## Data Management
+
+### Submission Data Structure
+
+```json
+{
+  "id": "sub_1234567890_abc123",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "company": "Investment Firm",
+  "message": "Interested in Phase 1 investment",
+  "submittedAt": "2025-01-20T10:30:00.000Z",
+  "ipAddress": "192.168.1.1"
+}
+```
+
+### Export Data
+
+- Click "Export JSON" button in admin dashboard
+- Downloads all current submissions as JSON file
+
+### Backup Strategy
+
+```bash
+# Manual backup
+cp data/submissions.json data/submissions_backup_$(date +%Y%m%d).json
+
+# Automated backup (cron job example)
+0 2 * * * cp /path/to/data/submissions.json /path/to/backups/submissions_$(date +\%Y\%m\%d).json
+```
+
+## Troubleshooting
+
+### Form Submission Not Working
+
+1. Check if `/data` directory has write permissions
+2. Verify API routes are correctly configured
+3. Check browser console for errors
+
+### Cannot Login to Admin
+
+1. Verify credentials in `.env.local`
+2. Clear browser cookies
+3. Restart the application
+
+### Data Not Persisting
+
+1. Ensure `data/submissions.json` exists
+2. Check file permissions
+3. Verify the data directory path
+
+## Deployment
+
+### Vercel
+
+1. Push to GitHub
+2. Connect to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy
+
+### Traditional Server
+
+1. Build the application: `npm run build`
+2. Set up PM2 or similar process manager
+3. Configure Nginx/Apache reverse proxy
+4. Set environment variables
+5. Start the application
+
+## Maintenance
+
+### Regular Tasks
+
+- Monitor disk space for JSON file growth
+- Backup submissions regularly
+- Review and archive old submissions
+- Update admin credentials periodically
+
+### Performance Optimization
+
+- For large datasets (>1000 submissions), consider:
+  - Implementing pagination
+  - Using a database instead of JSON
+  - Adding caching layer
+  - Implementing lazy loading
+
+## Support
+
+For issues or questions about the platform, please contact the development team.
+
+## License
+
+Private - All rights reserved

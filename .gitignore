@@ -10,6 +10,14 @@
 !.yarn/releases
 !.yarn/versions
 
+# Data directory (contains sensitive submission data)
+/data/
+data/
+*.json
+
+# Admin credentials (if stored in config)
+admin.config.js
+
 # testing
 /coverage
 
