@@ -20,7 +20,7 @@ import {
   Shield,
 } from "lucide-react";
 
-const WhatPriceLanding = () => {
+const InvestorPitch = () => {
   const [showPitch, setShowPitch] = useState(false);
   const [showEquity, setShowEquity] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -1080,4 +1080,4 @@ const WhatPriceLanding = () => {
   );
 };
 
-export default WhatPriceLanding;
+export default InvestorPitch;
