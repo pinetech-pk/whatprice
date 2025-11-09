@@ -2,8 +2,14 @@
  * Database Seeding Script
  *
  * This script populates the database with initial data for testing and development.
- * Run: npx tsx scripts/seed.ts
+ * Run: npm run db:seed
  */
+
+// Load environment variables from .env.local
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+config({ path: resolve(__dirname, '../.env.local') });
 
 import connectDB from '../src/lib/db/connection';
 import { Role, Category, Retailer, User, Product } from '../src/models';
