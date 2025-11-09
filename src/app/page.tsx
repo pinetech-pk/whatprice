@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Header from "@/components/Header";
+import Logo from "@/components/Logo";
 
 export const metadata: Metadata = {
   title: "WhatPrice - Pakistan's Premier Price Discovery Platform",
@@ -37,13 +39,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex flex-col">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-center items-center">
-            <h1 className="text-3xl font-bold text-blue-600">WhatPrice</h1>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="flex-grow container mx-auto px-4 py-16">
@@ -147,6 +143,9 @@ export default function HomePage() {
       <footer className="border-t border-gray-200 bg-white">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto text-center">
+            <div className="flex justify-center mb-8">
+              <Logo size="large" />
+            </div>
             <div className="mb-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 Interested in Investment Opportunities?
