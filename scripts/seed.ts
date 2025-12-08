@@ -341,7 +341,7 @@ async function seedUsers(roles: IRole[]) {
 async function seedVendors(users: mongoose.Document[]) {
   console.log('Seeding vendors...');
 
-  const vendorUsers = users.filter((u) => (u as { email: string }).email.startsWith('vendor'));
+  const vendorUsers = users.filter((u) => (u as unknown as { email: string }).email.startsWith('vendor'));
 
   if (vendorUsers.length < 3) {
     console.error('❌ Not enough vendor users found');
