@@ -581,9 +581,9 @@ async function seedVendorProducts(
     return [];
   }
 
-  const iphone = masterProducts.find((p) => (p as { slug: string }).slug.includes('iphone'));
-  const samsung = masterProducts.find((p) => (p as { slug: string }).slug.includes('samsung'));
-  const macbook = masterProducts.find((p) => (p as { slug: string }).slug.includes('macbook'));
+  const iphone = masterProducts.find((p) => (p as unknown as { slug: string }).slug.includes('iphone'));
+  const samsung = masterProducts.find((p) => (p as unknown as { slug: string }).slug.includes('samsung'));
+  const macbook = masterProducts.find((p) => (p as unknown as { slug: string }).slug.includes('macbook'));
 
   const products = [
     // Vendor 1 (Ali Electronics) products
@@ -767,7 +767,7 @@ async function seedSampleViews(products: mongoose.Document[], vendors: IVendor[]
 
     for (const product of products.slice(0, 4)) {
       const vendor = verifiedVendors.find(
-        (v) => v._id.toString() === (product as { vendorId: mongoose.Types.ObjectId }).vendorId.toString()
+        (v) => v._id.toString() === (product as unknown as { vendorId: mongoose.Types.ObjectId }).vendorId.toString()
       );
       if (!vendor) continue;
 
@@ -786,7 +786,7 @@ async function seedSampleViews(products: mongoose.Document[], vendors: IVendor[]
         views.push({
           productId: product._id,
           vendorId: vendor._id,
-          masterProductId: (product as { masterProductId?: mongoose.Types.ObjectId }).masterProductId,
+          masterProductId: (product as unknown as { masterProductId?: mongoose.Types.ObjectId }).masterProductId,
           sessionId: `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           viewType: ['direct', 'search', 'comparison', 'category'][Math.floor(Math.random() * 4)],
           deviceType: ['mobile', 'desktop', 'tablet'][Math.floor(Math.random() * 3)],
