@@ -12,7 +12,7 @@ export type { IUser } from './User';
 export type { IRole } from './Role';
 export type { ICategory } from './Category';
 export type { IRetailer } from './Retailer';
-export type { IProduct, IProductPrice } from './Product';
+export type { IProduct, IProductPrice, IProductDocument } from './Product';
 export type { IOrder, IOrderItem } from './Order';
 export type { IReview } from './Review';
 

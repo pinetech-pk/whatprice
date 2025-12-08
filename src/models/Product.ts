@@ -10,13 +10,13 @@ export interface IProductPrice {
   lastUpdated: Date;
 }
 
-export interface IProduct extends Document {
+export interface IProduct {
   _id: mongoose.Types.ObjectId;
   name: string;
   slug: string;
   description?: string;
   brand?: string;
-  model?: string;
+  productModel?: string;
   sku?: string;
   barcode?: string;
   category: mongoose.Types.ObjectId;
@@ -36,6 +36,8 @@ export interface IProduct extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type IProductDocument = IProduct & Document;
 
 const ProductPriceSchema = new Schema<IProductPrice>(
   {
@@ -74,7 +76,7 @@ const ProductPriceSchema = new Schema<IProductPrice>(
   { _id: false }
 );
 
-const ProductSchema = new Schema<IProduct>(
+const ProductSchema = new Schema<IProductDocument>(
   {
     name: {
       type: String,
@@ -96,7 +98,7 @@ const ProductSchema = new Schema<IProduct>(
       type: String,
       trim: true,
     },
-    model: {
+    productModel: {
       type: String,
       trim: true,
     },
@@ -255,7 +257,7 @@ ProductSchema.methods.updatePrice = async function (
   url?: string
 ) {
   const existingPriceIndex = this.prices.findIndex(
-    (p) => p.retailer.toString() === retailerId.toString()
+    (p: IProductPrice) => p.retailer.toString() === retailerId.toString()
   );
 
   if (existingPriceIndex >= 0) {
@@ -278,6 +280,6 @@ ProductSchema.methods.updatePrice = async function (
   await this.save();
 };
 
-const Product: Model<IProduct> = mongoose.models.Product || mongoose.model<IProduct>('Product', ProductSchema);
+const Product: Model<IProductDocument> = mongoose.models.Product || mongoose.model<IProductDocument>('Product', ProductSchema);
 
 export default Product;

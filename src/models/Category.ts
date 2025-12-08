@@ -95,13 +95,18 @@ CategorySchema.methods.isParent = async function (): Promise<boolean> {
   return children > 0;
 };
 
+// Define interface for Category model with statics
+interface ICategoryModel extends Model<ICategory> {
+  getTree(parentId?: mongoose.Types.ObjectId | null): Promise<Array<ICategory & { children: Array<unknown> }>>;
+}
+
 // Static method to get category tree
-CategorySchema.statics.getTree = async function (parentId = null) {
+CategorySchema.statics.getTree = async function (parentId: mongoose.Types.ObjectId | null = null) {
   const categories = await this.find({ parent: parentId, isActive: true }).sort({ order: 1 });
 
   const tree = [];
   for (const category of categories) {
-    const children = await this.getTree(category._id);
+    const children = await (this as ICategoryModel).getTree(category._id);
     tree.push({
       ...category.toObject(),
       children,
@@ -111,6 +116,6 @@ CategorySchema.statics.getTree = async function (parentId = null) {
   return tree;
 };
 
-const Category: Model<ICategory> = mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema);
+const Category = (mongoose.models.Category || mongoose.model<ICategory, ICategoryModel>('Category', CategorySchema)) as ICategoryModel;
 
 export default Category;
