@@ -34,8 +34,8 @@ async function getSubmissions(): Promise<Submission[]> {
       const response = await fetch(submissionsBlob.url);
       return await response.json();
     }
-  } catch (error) {
-    console.log("No submissions found");
+  } catch {
+    // No submissions found
   }
   return [];
 }

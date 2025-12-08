@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import {
   Mail,
-  Building,
   User,
   CheckCircle,
   Phone,
