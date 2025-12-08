@@ -12,6 +12,7 @@ export interface IProductPrice {
 
 export interface IProduct {
   _id: mongoose.Types.ObjectId;
+  vendorId: mongoose.Types.ObjectId;
   name: string;
   slug: string;
   description?: string;
@@ -21,15 +22,49 @@ export interface IProduct {
   barcode?: string;
   category: mongoose.Types.ObjectId;
   images: string[];
+
+  // Product Type for comparison
+  productType: 'unique' | 'comparative';
+  masterProductId?: mongoose.Types.ObjectId;
+
+  // Pricing
+  price: number;
+  originalPrice?: number;
+  currency: string;
+  stock: number;
+  isInStock: boolean;
+
+  // Legacy multi-retailer pricing (kept for backwards compatibility)
   prices: IProductPrice[];
+
   specifications?: Map<string, string>;
   features?: string[];
   tags?: string[];
   isActive: boolean;
+
+  // CPV Settings
+  currentBid: number; // Amount per 100 views (PKR)
+  placementTier: 'standard' | 'enhanced' | 'premium';
+  dailyBudget?: number;
+  totalBudget?: number;
+  budgetSpent: number;
+
+  // Metrics
   rating: number;
   reviewCount: number;
   viewCount: number;
+  todayViews: number;
+  weeklyViews: number;
+  monthlyViews: number;
+  qualifiedViews: number;
   compareCount: number;
+  contactClicks: number;
+  conversionRate: number;
+
+  // Position tracking
+  avgPosition: number;
+  impressions: number;
+
   metaTitle?: string;
   metaDescription?: string;
   createdBy?: mongoose.Types.ObjectId;
@@ -78,6 +113,11 @@ const ProductPriceSchema = new Schema<IProductPrice>(
 
 const ProductSchema = new Schema<IProductDocument>(
   {
+    vendorId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Vendor',
+      required: [true, 'Vendor is required'],
+    },
     name: {
       type: String,
       required: [true, 'Product name is required'],
@@ -121,10 +161,49 @@ const ProductSchema = new Schema<IProductDocument>(
       type: [String],
       default: [],
     },
+
+    // Product Type for comparison
+    productType: {
+      type: String,
+      enum: ['unique', 'comparative'],
+      default: 'unique',
+    },
+    masterProductId: {
+      type: Schema.Types.ObjectId,
+      ref: 'MasterProduct',
+    },
+
+    // Pricing
+    price: {
+      type: Number,
+      required: [true, 'Price is required'],
+      min: 0,
+    },
+    originalPrice: {
+      type: Number,
+      min: 0,
+    },
+    currency: {
+      type: String,
+      default: 'PKR',
+      uppercase: true,
+    },
+    stock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    isInStock: {
+      type: Boolean,
+      default: true,
+    },
+
+    // Legacy multi-retailer pricing (kept for backwards compatibility)
     prices: {
       type: [ProductPriceSchema],
       default: [],
     },
+
     specifications: {
       type: Map,
       of: String,
@@ -141,6 +220,33 @@ const ProductSchema = new Schema<IProductDocument>(
       type: Boolean,
       default: true,
     },
+
+    // CPV Settings
+    currentBid: {
+      type: Number,
+      default: 10, // PKR 10 per 100 views
+      min: 10,
+    },
+    placementTier: {
+      type: String,
+      enum: ['standard', 'enhanced', 'premium'],
+      default: 'standard',
+    },
+    dailyBudget: {
+      type: Number,
+      min: 0,
+    },
+    totalBudget: {
+      type: Number,
+      min: 0,
+    },
+    budgetSpent: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Metrics
     rating: {
       type: Number,
       default: 0,
@@ -157,11 +263,53 @@ const ProductSchema = new Schema<IProductDocument>(
       default: 0,
       min: 0,
     },
+    todayViews: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    weeklyViews: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    monthlyViews: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    qualifiedViews: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     compareCount: {
       type: Number,
       default: 0,
       min: 0,
     },
+    contactClicks: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    conversionRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Position tracking
+    avgPosition: {
+      type: Number,
+      default: 0,
+    },
+    impressions: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     metaTitle: {
       type: String,
       trim: true,
@@ -182,6 +330,7 @@ const ProductSchema = new Schema<IProductDocument>(
 
 // Indexes
 ProductSchema.index({ slug: 1 });
+ProductSchema.index({ vendorId: 1 });
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ brand: 1 });
 ProductSchema.index({ isActive: 1 });
@@ -189,6 +338,12 @@ ProductSchema.index({ rating: -1 });
 ProductSchema.index({ name: 'text', description: 'text', brand: 'text' }); // Text search
 ProductSchema.index({ 'prices.retailer': 1 });
 ProductSchema.index({ 'prices.price': 1 });
+// CPV and marketplace indexes
+ProductSchema.index({ productType: 1, masterProductId: 1 });
+ProductSchema.index({ vendorId: 1, isActive: 1 });
+ProductSchema.index({ category: 1, isActive: 1, currentBid: -1 }); // For CPV-based ranking
+ProductSchema.index({ placementTier: 1, currentBid: -1 });
+ProductSchema.index({ price: 1 });
 
 // Pre-save middleware to generate slug from name if not provided
 ProductSchema.pre('save', function (next) {
