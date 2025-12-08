@@ -60,6 +60,15 @@ export interface IVendor extends Document {
   isFeatured: boolean;
   createdAt: Date;
   updatedAt: Date;
+
+  // Instance Methods
+  getCpvRate(): number;
+  updateGraduationTier(): Promise<void>;
+  deductCredits(amount: number): Promise<boolean>;
+  addCredits(amount: number, cost: number): Promise<void>;
+  resetDailySpend(): Promise<void>;
+  canSpend(amount: number): boolean;
+  updateConversionRate(): Promise<void>;
 }
 
 const VendorAddressSchema = new Schema<IVendorAddress>(
