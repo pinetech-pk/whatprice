@@ -7,8 +7,9 @@
 
 import connectDB from '../src/lib/db/connection';
 import { Role, Category, Retailer, User, Product } from '../src/models';
-import { PERMISSIONS, DEFAULT_ROLES } from '../src/models/Role';
-import mongoose from 'mongoose';
+import { PERMISSIONS, DEFAULT_ROLES, IRole } from '../src/models/Role';
+import { ICategory } from '../src/models/Category';
+import { IRetailer } from '../src/models/Retailer';
 
 async function seedRoles() {
   console.log('Seeding roles...');
@@ -206,7 +207,7 @@ async function seedRetailers() {
   return createdRetailers;
 }
 
-async function seedUsers(roles: any[]) {
+async function seedUsers(roles: IRole[]) {
   console.log('Seeding users...');
 
   const adminRole = roles.find((r) => r.slug === DEFAULT_ROLES.ADMIN);
@@ -252,7 +253,7 @@ async function seedUsers(roles: any[]) {
   return createdUsers;
 }
 
-async function seedProducts(categories: any[], retailers: any[]) {
+async function seedProducts(categories: ICategory[], retailers: IRetailer[]) {
   console.log('Seeding products...');
 
   const smartphoneCategory = categories.find((c) => c.slug === 'smartphones');
@@ -269,7 +270,7 @@ async function seedProducts(categories: any[], retailers: any[]) {
       slug: 'iphone-15-pro-max',
       description: 'Latest flagship iPhone with advanced camera system and A17 Pro chip',
       brand: 'Apple',
-      model: 'iPhone 15 Pro Max',
+      productModel: 'iPhone 15 Pro Max',
       sku: 'AAPL-IP15PM-256',
       category: smartphoneCategory._id,
       images: [
@@ -301,7 +302,7 @@ async function seedProducts(categories: any[], retailers: any[]) {
       slug: 'macbook-pro-16-m3-max',
       description: 'Powerful laptop for professionals with M3 Max chip',
       brand: 'Apple',
-      model: 'MacBook Pro 16"',
+      productModel: 'MacBook Pro 16"',
       sku: 'AAPL-MBP16-M3M',
       category: laptopCategory._id,
       images: [
@@ -333,7 +334,7 @@ async function seedProducts(categories: any[], retailers: any[]) {
       slug: 'samsung-galaxy-s24-ultra',
       description: 'Premium Android smartphone with S Pen and AI features',
       brand: 'Samsung',
-      model: 'Galaxy S24 Ultra',
+      productModel: 'Galaxy S24 Ultra',
       sku: 'SAMS-S24U-512',
       category: smartphoneCategory._id,
       images: [

@@ -227,7 +227,7 @@ OrderSchema.pre('save', async function (next) {
 
 // Method to calculate totals
 OrderSchema.methods.calculateTotals = function () {
-  this.subtotal = this.items.reduce((sum, item) => sum + item.total, 0);
+  this.subtotal = this.items.reduce((sum: number, item: IOrderItem) => sum + item.total, 0);
   this.total = this.subtotal + this.tax + this.shipping - this.discount;
 };
 

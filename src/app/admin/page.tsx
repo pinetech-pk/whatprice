@@ -255,16 +255,6 @@ const AdminDashboard = () => {
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500 text-center">
-                Default credentials for development:
-                <br />
-                Username: <code className="bg-gray-200 px-1">admin</code>
-                <br />
-                Password:{" "}
-                <code className="bg-gray-200 px-1">whatprice2025!</code>
-              </p>
-            </div>
           </div>
         </div>
       </div>
