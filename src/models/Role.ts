@@ -117,6 +117,13 @@ export const PERMISSIONS = {
   // Admin permissions
   ADMIN_ACCESS: 'admin:access',
   ROLE_MANAGE: 'role:manage',
+
+  // Vendor permissions
+  VENDOR_DASHBOARD: 'vendor:dashboard',
+  VENDOR_PRODUCTS: 'vendor:products',
+  VENDOR_ANALYTICS: 'vendor:analytics',
+  VENDOR_BILLING: 'vendor:billing',
+  VENDOR_SETTINGS: 'vendor:settings',
 };
 
 // Default roles
@@ -125,4 +132,5 @@ export const DEFAULT_ROLES = {
   USER: 'user',
   RETAILER: 'retailer',
   MODERATOR: 'moderator',
+  VENDOR: 'vendor',
 };

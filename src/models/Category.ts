@@ -12,6 +12,19 @@ export interface ICategory extends Document {
   order: number;
   metaTitle?: string;
   metaDescription?: string;
+
+  // CPV Settings
+  baseViewRate: number; // Base cost per 100 views (PKR)
+  minBidAmount: number; // Minimum bid allowed
+  maxBidAmount: number; // Maximum bid allowed
+  currency: string;
+
+  // Category Metrics
+  totalProducts: number;
+  totalViews: number;
+  avgProductPrice?: number;
+  competitiveness: 'low' | 'medium' | 'high';
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,6 +73,42 @@ const CategorySchema = new Schema<ICategory>(
     metaDescription: {
       type: String,
       trim: true,
+    },
+
+    // CPV Settings
+    baseViewRate: {
+      type: Number,
+      default: 10, // PKR 10 per 100 views
+      min: 5,
+    },
+    minBidAmount: {
+      type: Number,
+      default: 10,
+      min: 5,
+    },
+    maxBidAmount: {
+      type: Number,
+      default: 100,
+    },
+    currency: {
+      type: String,
+      default: 'PKR',
+    },
+
+    // Category Metrics
+    totalProducts: {
+      type: Number,
+      default: 0,
+    },
+    totalViews: {
+      type: Number,
+      default: 0,
+    },
+    avgProductPrice: Number,
+    competitiveness: {
+      type: String,
+      enum: ['low', 'medium', 'high'],
+      default: 'low',
     },
   },
   {
