@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import connectDB from '@/lib/db/connection';
 import Vendor from '@/models/Vendor';
-import User from '@/models/User';
-import Product from '@/models/Product';
 
 async function isAuthenticated() {
   const cookieStore = await cookies();

@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     await connectDB();
 
     // Calculate date range
-    let dateFrom: Date = new Date();
+    const dateFrom: Date = new Date();
     switch (period) {
       case '7d':
         dateFrom.setDate(dateFrom.getDate() - 7);
