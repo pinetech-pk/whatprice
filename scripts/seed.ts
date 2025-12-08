@@ -743,10 +743,11 @@ async function seedVendorProducts(
 
   // Update master product vendor counts
   for (const mp of masterProducts) {
+    const mpId = (mp as unknown as { _id: mongoose.Types.ObjectId })._id;
     const count = createdProducts.filter(
-      (p) => p.masterProductId?.toString() === mp._id.toString()
+      (p) => p.masterProductId?.toString() === mpId.toString()
     ).length;
-    await MasterProduct.updateOne({ _id: mp._id }, { vendorCount: count });
+    await MasterProduct.updateOne({ _id: mpId }, { vendorCount: count });
   }
 
   console.log(`✅ Created ${createdProducts.length} vendor products`);
