@@ -1,22 +1,17 @@
 // src/app/admin/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   User,
   Lock,
-  Mail,
-  Building,
-  MessageSquare,
   Trash2,
   LogOut,
-  Calendar,
   Globe,
   Shield,
   RefreshCw,
   Download,
   Search,
-  Filter,
 } from "lucide-react";
 
 interface Submission {
@@ -43,10 +38,44 @@ const AdminDashboard = () => {
     useState<Submission | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
+  const fetchSubmissions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/submissions");
+      if (res.ok) {
+        const data = await res.json();
+        setSubmissions(
+          data.submissions.sort(
+            (a: Submission, b: Submission) =>
+              new Date(b.submittedAt).getTime() -
+              new Date(a.submittedAt).getTime()
+          )
+        );
+        setFilteredSubmissions(data.submissions);
+      }
+    } catch {
+      console.error("Failed to fetch submissions");
+    }
+  }, []);
+
+  const checkAuth = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/check-auth");
+      const data = await res.json();
+      setIsAuthenticated(data.authenticated);
+      if (data.authenticated) {
+        fetchSubmissions();
+      }
+    } catch {
+      // Auth check failed silently
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchSubmissions]);
+
   // Check authentication on mount
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   // Filter submissions when search term changes
   useEffect(() => {
@@ -62,21 +91,6 @@ const AdminDashboard = () => {
       setFilteredSubmissions(submissions);
     }
   }, [searchTerm, submissions]);
-
-  const checkAuth = async () => {
-    try {
-      const res = await fetch("/api/admin/check-auth");
-      const data = await res.json();
-      setIsAuthenticated(data.authenticated);
-      if (data.authenticated) {
-        fetchSubmissions();
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +112,7 @@ const AdminDashboard = () => {
       } else {
         setLoginError(data.error || "Login failed");
       }
-    } catch (error) {
+    } catch {
       setLoginError("An error occurred during login");
     }
   };
@@ -109,27 +123,8 @@ const AdminDashboard = () => {
       setIsAuthenticated(false);
       setSubmissions([]);
       setFilteredSubmissions([]);
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
-  const fetchSubmissions = async () => {
-    try {
-      const res = await fetch("/api/admin/submissions");
-      if (res.ok) {
-        const data = await res.json();
-        setSubmissions(
-          data.submissions.sort(
-            (a: Submission, b: Submission) =>
-              new Date(b.submittedAt).getTime() -
-              new Date(a.submittedAt).getTime()
-          )
-        );
-        setFilteredSubmissions(data.submissions);
-      }
-    } catch (error) {
-      console.error("Failed to fetch submissions:", error);
+    } catch {
+      // Logout failed silently
     }
   };
 
@@ -148,8 +143,8 @@ const AdminDashboard = () => {
           setSelectedSubmission(null);
         }
       }
-    } catch (error) {
-      console.error("Failed to delete submission:", error);
+    } catch {
+      // Failed to delete submission
     } finally {
       setIsDeleting(null);
     }

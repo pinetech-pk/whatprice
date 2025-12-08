@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ArrowLeft } from "lucide-react";
 import InvestorPitch from "@/components/InvestorPitch";
 import InterestForm from "@/components/InterestForm";
@@ -9,37 +9,77 @@ import Link from "next/link";
 export default function InvestorsPage() {
   const [accessKey, setAccessKey] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showKeyInput, setShowKeyInput] = useState(true);
   const [error, setError] = useState("");
 
-  // Check if user is already authenticated on mount
-  useEffect(() => {
-    const savedKey = localStorage.getItem("investor_access_key");
-    if (savedKey === process.env.NEXT_PUBLIC_INVESTOR_KEY) {
-      setIsAuthenticated(true);
-      setShowKeyInput(false);
+  // Check if user is already authenticated via server-side session
+  const checkAuth = useCallback(async () => {
+    try {
+      const res = await fetch("/api/investors/check-auth");
+      const data = await res.json();
+      if (data.authenticated) {
+        setIsAuthenticated(true);
+        setShowKeyInput(false);
+      }
+    } catch {
+      // Not authenticated
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const handleKeySubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const handleKeySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (accessKey === process.env.NEXT_PUBLIC_INVESTOR_KEY) {
-      setIsAuthenticated(true);
-      setShowKeyInput(false);
-      localStorage.setItem("investor_access_key", accessKey);
-    } else {
-      setError("Invalid access key. Please try again or request access below.");
+    try {
+      const res = await fetch("/api/investors/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessKey }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setIsAuthenticated(true);
+        setShowKeyInput(false);
+        setAccessKey(""); // Clear the key from state for security
+      } else {
+        setError(data.error || "Invalid access key. Please try again or request access below.");
+      }
+    } catch {
+      setError("An error occurred. Please try again.");
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/investors/logout", { method: "POST" });
+    } catch {
+      // Continue with client-side logout even if API fails
+    }
     setIsAuthenticated(false);
     setShowKeyInput(true);
     setAccessKey("");
-    localStorage.removeItem("investor_access_key");
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // If authenticated, show the pitch
   if (isAuthenticated) {
