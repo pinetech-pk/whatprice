@@ -5,6 +5,12 @@
  * Run: npx tsx scripts/seed.ts
  */
 
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from .env.local
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
 import bcrypt from 'bcryptjs';
 import connectDB from '../src/lib/db/connection';
 import {
