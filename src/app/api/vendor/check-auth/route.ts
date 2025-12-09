@@ -13,9 +13,8 @@ export async function GET() {
 
     return NextResponse.json({
       authenticated: true,
-      session: {
-        userId: session.userId,
-        vendorId: session.vendorId,
+      vendor: {
+        id: session.vendorId,
         email: session.email,
         storeName: session.storeName,
         verificationStatus: session.verificationStatus,
