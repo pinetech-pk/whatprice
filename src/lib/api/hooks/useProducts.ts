@@ -198,12 +198,19 @@ export function useVendorProducts(): UseVendorProductsReturn {
 
     const response = await api.get<{
       products: Product[];
-      pagination: UseVendorProductsReturn['pagination'];
+      pagination: { page: number; limit: number; total: number; pages: number };
     }>('/vendor/products', params);
 
     if (response.ok && response.data) {
       setProducts(response.data.products);
-      setPagination(response.data.pagination);
+      // Map API 'pages' to our 'totalPages' interface
+      const apiPagination = response.data.pagination;
+      setPagination(apiPagination ? {
+        page: apiPagination.page,
+        limit: apiPagination.limit,
+        total: apiPagination.total,
+        totalPages: apiPagination.pages,
+      } : null);
     } else {
       setError(response.error?.message || 'Failed to fetch products');
     }
