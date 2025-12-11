@@ -18,7 +18,6 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
 
     await connectDB();
 
@@ -30,103 +29,72 @@ export async function GET(request: Request) {
       );
     }
 
-    if (action === 'pricing') {
-      // Return pricing tiers
-      return NextResponse.json({
-        success: true,
-        pricing: getCreditPricing(),
-      });
+    // Get params for pagination and filtering
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const type = searchParams.get('type'); // purchase, deduction, etc.
+
+    // Build query for transactions
+    const query: Record<string, unknown> = { vendorId: vendor._id };
+    if (type) {
+      query.transactionType = type;
     }
 
-    if (action === 'transactions') {
-      // Return transaction history
-      const page = parseInt(searchParams.get('page') || '1');
-      const limit = parseInt(searchParams.get('limit') || '20');
-      const type = searchParams.get('type'); // purchase, deduction, etc.
-
-      const query: Record<string, unknown> = { vendorId: vendor._id };
-      if (type) {
-        query.transactionType = type;
-      }
-
-      const [transactions, total] = await Promise.all([
-        ViewTransaction.find(query)
-          .sort({ createdAt: -1 })
-          .skip((page - 1) * limit)
-          .limit(limit),
-        ViewTransaction.countDocuments(query),
-      ]);
-
-      return NextResponse.json({
-        success: true,
-        transactions,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        },
-      });
-    }
-
-    // Default: Return balance summary
+    // Fetch balance info
     const cpvRate = vendor.getCpvRate();
     const estimatedViews = Math.floor(vendor.viewCredits / (cpvRate / 100));
 
-    // Get recent spending summary
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const spendingSummary = await ViewTransaction.aggregate([
-      {
-        $match: {
-          vendorId: vendor._id,
-          createdAt: { $gte: thirtyDaysAgo },
-          status: 'completed',
-        },
-      },
-      {
-        $group: {
-          _id: '$transactionType',
-          totalChange: { $sum: '$creditChange' },
-          count: { $sum: 1 },
-        },
-      },
+    // Fetch transactions with pagination
+    const [transactions, total] = await Promise.all([
+      ViewTransaction.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      ViewTransaction.countDocuments(query),
     ]);
 
-    const summary = {
-      purchases: 0,
-      deductions: 0,
-      purchaseCount: 0,
-      deductionCount: 0,
-    };
+    // Get pricing tiers
+    const pricing = getCreditPricing();
 
-    for (const item of spendingSummary) {
-      if (item._id === 'purchase') {
-        summary.purchases = item.totalChange;
-        summary.purchaseCount = item.count;
-      } else if (item._id === 'deduction') {
-        summary.deductions = Math.abs(item.totalChange);
-        summary.deductionCount = item.count;
-      }
-    }
+    // Map transactions to expected CreditTransaction format
+    const mappedTransactions = transactions.map((tx) => ({
+      _id: tx._id.toString(),
+      vendorId: tx.vendorId?.toString(),
+      type: tx.transactionType, // Map transactionType to type
+      amount: tx.purchaseDetails?.amount || 0, // Access nested purchaseDetails
+      currency: tx.purchaseDetails?.currency || 'PKR',
+      creditsAdded: tx.creditChange > 0 ? tx.creditChange : undefined,
+      creditsDeducted: tx.creditChange < 0 ? Math.abs(tx.creditChange) : undefined,
+      creditChange: tx.creditChange,
+      creditBalanceBefore: tx.creditBalanceBefore || 0,
+      creditBalanceAfter: tx.creditBalanceAfter || 0,
+      reason: tx.description,
+      status: tx.status,
+      createdAt: tx.createdAt,
+    }));
 
+    // Return data in the format expected by CreditsResponse type
     return NextResponse.json({
       success: true,
       balance: {
-        credits: vendor.viewCredits,
-        estimatedViews,
+        balance: vendor.viewCredits, // Map credits to balance field
+        tier: vendor.graduationTier, // Map graduationTier to tier field
         cpvRate,
-        graduationTier: vendor.graduationTier,
-        dailyBudget: vendor.maxDailyBudget,
-        currentDailySpend: vendor.currentDailySpend,
+        estimatedViews,
       },
-      stats: {
-        totalPurchased: vendor.totalCreditsPurchased,
-        totalUsed: vendor.totalCreditsUsed,
-        totalSpent: vendor.totalSpent,
+      transactions: mappedTransactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      last30Days: summary,
+      pricingTiers: pricing.tiers.map((t, index) => ({
+        credits: t.credits,
+        price: t.price,
+        pricePerCredit: Math.round((t.price / t.credits) * 100) / 100,
+        popular: index === 2, // Mark the 10,000 credits tier as popular
+      })),
     });
   } catch (error) {
     console.error('Get credits error:', error);

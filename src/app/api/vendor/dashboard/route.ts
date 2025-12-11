@@ -158,38 +158,45 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      dashboard: {
-        overview: {
-          storeName: vendor.storeName,
-          verificationStatus: vendor.verificationStatus,
-          graduationTier: vendor.graduationTier,
-          cpvRate,
-          rating: vendor.rating,
-          reviewCount: vendor.reviewCount,
-        },
-        credits: {
-          balance: vendor.viewCredits,
-          estimatedViewsRemaining,
-          dailyBudget: vendor.maxDailyBudget,
-          currentDailySpend: vendor.currentDailySpend,
-          totalSpent: vendor.totalSpent,
-        },
-        products: {
-          total: totalProducts,
-          active: activeProducts,
-          topProducts,
-        },
-        today: {
-          views: todayStats.totalViews,
-          qualifiedViews: todayStats.qualifiedViews,
-          contactClicks: todayStats.contactClicks,
-          uniqueVisitors: todayStats.uniqueSessions?.length || 0,
-          spent: todayStats.charged,
-          viewsChange: Math.round(viewsChange),
-        },
-        weeklyTrend,
-        monthlySpending: monthlySpending[0]?.total || 0,
-        recentTransactions,
+      // Return data in the format expected by VendorDashboardResponse type
+      todayStats: {
+        views: todayStats.totalViews,
+        qualifiedViews: todayStats.qualifiedViews,
+        contactClicks: todayStats.contactClicks,
+        cpvCharged: todayStats.charged,
+      },
+      yesterdayComparison: {
+        views: yesterdayTotal,
+        viewsChange: Math.round(viewsChange),
+        qualifiedViews: 0, // Not tracked separately for yesterday
+        qualifiedViewsChange: 0,
+      },
+      weeklyTrend: weeklyTrend.map((day) => ({
+        date: day._id,
+        views: day.views,
+        qualifiedViews: day.qualified,
+        cpvCharged: day.spent,
+      })),
+      topProducts: topProducts.map((p) => ({
+        _id: p._id.toString(),
+        name: p.name,
+        views: p.viewCount || 0,
+        clicks: 0, // Calculate if needed
+        conversionRate: 0,
+      })),
+      recentTransactions: recentTransactions.map((tx) => ({
+        _id: tx._id.toString(),
+        type: tx.transactionType,
+        amount: 0,
+        creditChange: tx.creditChange,
+        createdAt: tx.createdAt,
+      })),
+      creditBalance: vendor.viewCredits,
+      cpvRate,
+      estimatedViewsRemaining,
+      monthlySpending: {
+        total: monthlySpending[0]?.total || 0,
+        viewsCharged: 0, // Calculate if needed
       },
     });
   } catch (error) {
