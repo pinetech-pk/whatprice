@@ -179,32 +179,107 @@ async function getOverviewAnalytics(
     uniqueSessions: [],
   };
 
+  // Get product performance for top products
+  const productPerformance = await ProductView.aggregate([
+    {
+      $match: {
+        vendorId,
+        timestamp: { $gte: dateFrom, $lte: dateTo },
+        isBot: false,
+      },
+    },
+    {
+      $group: {
+        _id: '$productId',
+        views: { $sum: 1 },
+        qualifiedViews: { $sum: { $cond: ['$isQualifiedView', 1, 0] } },
+        clicks: { $sum: { $cond: ['$clickedContact', 1, 0] } },
+        spent: { $sum: { $cond: ['$cpvCharged', '$cpvAmount', 0] } },
+      },
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'product',
+      },
+    },
+    { $unwind: { path: '$product', preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        _id: 1,
+        name: { $ifNull: ['$product.name', 'Unknown Product'] },
+        views: 1,
+        qualifiedViews: 1,
+        clicks: 1,
+        spent: 1,
+        conversionRate: {
+          $cond: [{ $eq: ['$views', 0] }, 0, { $multiply: [{ $divide: ['$clicks', '$views'] }, 100] }],
+        },
+      },
+    },
+    { $sort: { views: -1 } },
+    { $limit: 10 },
+  ]);
+
+  // Calculate conversion rate
+  const conversionRate = stats.totalViews > 0
+    ? Math.round((stats.contactClicks / stats.totalViews) * 1000) / 10
+    : 0;
+
+  // Calculate average CPV
+  const avgCpv = stats.qualifiedViews > 0
+    ? Math.round((stats.totalSpent / stats.qualifiedViews) * 100) / 100
+    : 0;
+
+  // Map device stats to expected format
+  const deviceMap: Record<string, number> = { mobile: 0, tablet: 0, desktop: 0 };
+  deviceStats.forEach((d) => {
+    const key = (d._id || 'desktop').toLowerCase();
+    if (key in deviceMap) {
+      deviceMap[key] = d.count;
+    }
+  });
+
+  // Map source stats to expected format
+  const sourceMap: Record<string, number> = { comparison: 0, direct: 0, search: 0, category: 0 };
+  sourceStats.forEach((s) => {
+    const key = (s._id || 'direct').toLowerCase();
+    if (key in sourceMap) {
+      sourceMap[key] = s.count;
+    }
+  });
+
+  // Return data in the format expected by VendorAnalyticsResponse type
   return NextResponse.json({
     success: true,
-    analytics: {
-      period: { from: dateFrom, to: dateTo },
-      summary: {
-        totalViews: stats.totalViews,
-        qualifiedViews: stats.qualifiedViews,
-        uniqueVisitors: stats.uniqueSessions?.length || 0,
-        contactClicks: stats.contactClicks,
-        totalSpent: Math.round(stats.totalSpent * 100) / 100,
-        avgViewDuration: Math.round(stats.avgDuration * 10) / 10,
-        qualificationRate: stats.totalViews > 0
-          ? Math.round((stats.qualifiedViews / stats.totalViews) * 100)
-          : 0,
-        clickThroughRate: stats.totalViews > 0
-          ? Math.round((stats.contactClicks / stats.totalViews) * 1000) / 10
-          : 0,
-      },
-      byDevice: Object.fromEntries(
-        deviceStats.map((d) => [d._id || 'unknown', d.count])
-      ),
-      bySource: Object.fromEntries(
-        sourceStats.map((s) => [s._id || 'direct', s.count])
-      ),
-      dailyTrend,
+    summary: {
+      totalViews: stats.totalViews,
+      qualifiedViews: stats.qualifiedViews,
+      contactClicks: stats.contactClicks,
+      conversionRate,
+      totalSpent: Math.round(stats.totalSpent * 100) / 100,
+      avgCpv,
     },
+    chartData: dailyTrend.map((day) => ({
+      date: day._id,
+      views: day.views,
+      qualifiedViews: day.qualified,
+      clicks: day.clicks,
+      spent: Math.round(day.spent * 100) / 100,
+    })),
+    productPerformance: productPerformance.map((p) => ({
+      _id: p._id?.toString() || '',
+      name: p.name,
+      views: p.views,
+      qualifiedViews: p.qualifiedViews,
+      clicks: p.clicks,
+      conversionRate: Math.round(p.conversionRate * 10) / 10,
+      spent: Math.round(p.spent * 100) / 100,
+    })),
+    trafficSources: sourceMap as { comparison: number; direct: number; search: number; category: number },
+    deviceBreakdown: deviceMap as { mobile: number; tablet: number; desktop: number },
   });
 }
 
