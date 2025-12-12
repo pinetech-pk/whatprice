@@ -270,12 +270,12 @@ export default function VendorProductsPage() {
                         {activeDropdown === product._id && (
                           <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                             <Link
-                              href={`/products/${product.slug}`}
+                              href={`/vendor/products/${product._id}`}
                               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               onClick={() => setActiveDropdown(null)}
                             >
                               <Eye className="w-4 h-4" />
-                              View Product
+                              View Details
                             </Link>
                             <Link
                               href={`/vendor/products/${product._id}/edit`}
@@ -335,6 +335,13 @@ export default function VendorProductsPage() {
                       <span>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-3">
+                      <Link
+                        href={`/vendor/products/${product._id}`}
+                        className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                      >
+                        <Eye className="w-3 h-3" />
+                        View
+                      </Link>
                       <Link
                         href={`/vendor/products/${product._id}/edit`}
                         className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"

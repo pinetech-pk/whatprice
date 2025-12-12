@@ -73,6 +73,7 @@ export interface Product {
   slug: string;
   description?: string;
   brand?: string;
+  productModel?: string;
   sku?: string;
   barcode?: string;
   images: string[];
@@ -82,14 +83,19 @@ export interface Product {
   stock: number;
   isInStock: boolean;
   productType: 'unique' | 'comparative';
+  specifications?: Record<string, string>;
+  features?: string[];
+  tags?: string[];
   currentBid: number;
   placementTier: 'standard' | 'enhanced' | 'premium';
   dailyBudget?: number;
   totalBudget?: number;
   budgetSpent: number;
+  totalSpent?: number;
   rating: number;
   reviewCount: number;
   viewCount: number;
+  clickCount?: number;
   todayViews: number;
   weeklyViews: number;
   monthlyViews: number;
