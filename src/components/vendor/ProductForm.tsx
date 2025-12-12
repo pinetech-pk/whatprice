@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Save,
@@ -9,8 +9,8 @@ import {
   X,
   AlertCircle,
 } from 'lucide-react';
-import { api } from '@/lib/api/client';
 import type { Product, Category } from '@/lib/api/types';
+import { CategorySelector } from './CategorySelector';
 
 interface ProductFormProps {
   product?: Product;
@@ -42,9 +42,9 @@ export interface ProductFormData {
 
 export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) {
   const router = useRouter();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [, setSelectedCategory] = useState<Category | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
   const [formData, setFormData] = useState<ProductFormData>({
     name: product?.name || '',
     description: product?.description || '',
@@ -68,18 +68,14 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
   const [newFeature, setNewFeature] = useState('');
   const [newTag, setNewTag] = useState('');
 
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setCategoriesLoading(true);
-      const response = await api.get<{ categories: Category[] }>('/categories');
-      if (response.ok && response.data) {
-        setCategories(response.data.categories);
-      }
-      setCategoriesLoading(false);
-    };
-    fetchCategories();
-  }, []);
+  // Handle category change from CategorySelector
+  const handleCategoryChange = (categoryId: string, category: Category | null) => {
+    setFormData((prev) => ({ ...prev, category: categoryId }));
+    setSelectedCategory(category);
+    if (categoryId) {
+      setCategoryError(null);
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -145,6 +141,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setCategoryError(null);
 
     // Validation
     if (!formData.name.trim()) {
@@ -152,7 +149,7 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
       return;
     }
     if (!formData.category) {
-      setError('Please select a category');
+      setCategoryError('Please select a category');
       return;
     }
     if (!formData.price || formData.price <= 0) {
@@ -263,24 +260,13 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="category"
+          <div className="md:col-span-2">
+            <CategorySelector
               value={formData.category}
-              onChange={handleChange}
-              disabled={categoriesLoading}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+              onChange={handleCategoryChange}
+              disabled={isLoading}
+              error={categoryError || undefined}
+            />
           </div>
 
           <div>
@@ -296,6 +282,9 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
               <option value="unique">Unique Product</option>
               <option value="comparative">Comparative Product</option>
             </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Comparative products can be compared across vendors
+            </p>
           </div>
         </div>
       </div>
