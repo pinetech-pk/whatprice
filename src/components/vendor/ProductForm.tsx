@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import {
   Save,
   ArrowLeft,
-  Plus,
   X,
   AlertCircle,
 } from 'lucide-react';
 import type { Product, Category } from '@/lib/api/types';
 import { CategorySelector } from './CategorySelector';
+import { ImageUploader } from '@/components/ui/ImageUploader';
 
 interface ProductFormProps {
   product?: Product;
@@ -64,7 +64,6 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
     totalBudget: product?.totalBudget,
   });
 
-  const [newImageUrl, setNewImageUrl] = useState('');
   const [newFeature, setNewFeature] = useState('');
   const [newTag, setNewTag] = useState('');
 
@@ -87,21 +86,9 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
     }));
   };
 
-  const handleAddImage = () => {
-    if (newImageUrl && !formData.images.includes(newImageUrl)) {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, newImageUrl],
-      }));
-      setNewImageUrl('');
-    }
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
+  // Handle images change from ImageUploader
+  const handleImagesChange = (images: string[]) => {
+    setFormData((prev) => ({ ...prev, images }));
   };
 
   const handleAddFeature = () => {
@@ -344,60 +331,13 @@ export function ProductForm({ product, onSubmit, isLoading }: ProductFormProps) 
       {/* Images */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h3>
-
-        {/* Image List */}
-        {formData.images.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {formData.images.map((url, index) => (
-              <div key={index} className="relative group">
-                <div className="aspect-square rounded-lg bg-gray-100 overflow-hidden">
-                  <img
-                    src={url}
-                    alt={`Product ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/placeholder-image.png';
-                    }}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(index)}
-                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                {index === 0 && (
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-blue-600 text-white text-xs rounded">
-                    Main
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Add Image */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newImageUrl}
-            onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder="Enter image URL..."
-            className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="button"
-            onClick={handleAddImage}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 mt-2">
-          Add URLs of product images. The first image will be used as the main image.
-        </p>
+        <ImageUploader
+          images={formData.images}
+          onChange={handleImagesChange}
+          maxImages={5}
+          folder="products"
+          disabled={isLoading}
+        />
       </div>
 
       {/* Features & Tags */}
