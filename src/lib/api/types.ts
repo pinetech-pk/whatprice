@@ -175,14 +175,15 @@ export interface Category {
   slug: string;
   description?: string;
   image?: string;
-  parentId?: string;
-  level: number;
-  baseViewRate: number;
+  icon?: string;
+  parent: string | null; // Parent category ID
+  baseViewRate: number; // Base CPV rate per 100 views
   minBidAmount: number;
   maxBidAmount: number;
-  totalProducts: number;
-  totalViews: number;
-  isActive: boolean;
+  competitiveness: 'low' | 'medium' | 'high';
+  totalProducts?: number;
+  totalViews?: number;
+  isActive?: boolean;
   children?: Category[];
 }
 
