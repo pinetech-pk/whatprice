@@ -539,9 +539,10 @@ async function createVendorProducts(
 
   // Update vendor product counts
   for (const vendor of vendors) {
-    const count = products.filter(p => p.vendorId.toString() === vendor._id.toString()).length;
+    const vendorId = (vendor as unknown as { _id: mongoose.Types.ObjectId })._id;
+    const count = products.filter(p => p.vendorId.toString() === vendorId.toString()).length;
     await Vendor.updateOne(
-      { _id: vendor._id },
+      { _id: vendorId },
       { totalProducts: count, activeProducts: count }
     );
   }
