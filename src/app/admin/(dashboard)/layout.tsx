@@ -15,6 +15,7 @@ import {
   Shield,
   ChevronRight,
   Loader2,
+  Briefcase,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -27,6 +28,7 @@ const navItems = [
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Transactions', href: '/admin/transactions', icon: CreditCard },
+  { name: 'Investments', href: '/admin/investments', icon: Briefcase },
 ];
 
 export default function AdminDashboardLayout({ children }: AdminLayoutProps) {
