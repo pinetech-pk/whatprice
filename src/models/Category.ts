@@ -146,23 +146,49 @@ CategorySchema.methods.isParent = async function (): Promise<boolean> {
 
 // Define interface for Category model with statics
 interface ICategoryModel extends Model<ICategory> {
-  getTree(parentId?: mongoose.Types.ObjectId | null): Promise<Array<ICategory & { children: Array<unknown> }>>;
+  getTree(): Promise<Array<ICategory & { children: Array<unknown> }>>;
 }
 
-// Static method to get category tree
-CategorySchema.statics.getTree = async function (parentId: mongoose.Types.ObjectId | null = null) {
-  const categories = await this.find({ parent: parentId, isActive: true }).sort({ order: 1 });
+// Static method to get category tree - OPTIMIZED: Single query + in-memory tree building
+CategorySchema.statics.getTree = async function () {
+  // Fetch ALL active categories in ONE query
+  const allCategories = await this.find({ isActive: true })
+    .sort({ order: 1, name: 1 })
+    .lean();
 
-  const tree = [];
-  for (const category of categories) {
-    const children = await (this as ICategoryModel).getTree(category._id);
-    tree.push({
-      ...category.toObject(),
-      children,
+  // Build a map for quick lookup by ID
+  const categoryMap = new Map<string, ICategory & { children: Array<unknown> }>();
+
+  // First pass: Create all category objects with empty children arrays
+  for (const category of allCategories) {
+    categoryMap.set(category._id.toString(), {
+      ...category,
+      children: [],
     });
   }
 
-  return tree;
+  // Second pass: Build the tree by assigning children to their parents
+  const rootCategories: Array<ICategory & { children: Array<unknown> }> = [];
+
+  for (const category of allCategories) {
+    const categoryWithChildren = categoryMap.get(category._id.toString())!;
+
+    if (category.parent) {
+      // This category has a parent - add it to parent's children
+      const parentCategory = categoryMap.get(category.parent.toString());
+      if (parentCategory) {
+        parentCategory.children.push(categoryWithChildren);
+      } else {
+        // Parent not found (maybe inactive), treat as root
+        rootCategories.push(categoryWithChildren);
+      }
+    } else {
+      // No parent - this is a root category
+      rootCategories.push(categoryWithChildren);
+    }
+  }
+
+  return rootCategories;
 };
 
 const Category = (mongoose.models.Category || mongoose.model<ICategory, ICategoryModel>('Category', CategorySchema)) as ICategoryModel;
