@@ -19,6 +19,8 @@ import {
   RefreshCw,
   X,
   AlertTriangle,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react';
 
 interface Vendor {
@@ -45,24 +47,28 @@ interface Vendor {
   totalViews: number;
   rating: number;
   createdAt: string;
+  deletedAt?: string;
+  deleteScheduledFor?: string;
 }
 
 interface VendorStats {
   pending: number;
   verified: number;
   rejected: number;
+  trashed: number;
 }
 
 export default function AdminVendorsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [stats, setStats] = useState<VendorStats>({ pending: 0, verified: 0, rejected: 0 });
+  const [stats, setStats] = useState<VendorStats>({ pending: 0, verified: 0, rejected: 0, trashed: 0 });
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
   const [tierFilter, setTierFilter] = useState('');
+  const [showTrashed, setShowTrashed] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -72,9 +78,11 @@ export default function AdminVendorsPage() {
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [creditsToAdd, setCreditsToAdd] = useState('');
   const [creditsReason, setCreditsReason] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
 
   const fetchVendors = useCallback(async () => {
     setLoading(true);
@@ -84,8 +92,9 @@ export default function AdminVendorsPage() {
         limit: pagination.limit.toString(),
       });
       if (searchTerm) params.set('search', searchTerm);
-      if (statusFilter) params.set('status', statusFilter);
-      if (tierFilter) params.set('tier', tierFilter);
+      if (statusFilter && !showTrashed) params.set('status', statusFilter);
+      if (tierFilter && !showTrashed) params.set('tier', tierFilter);
+      if (showTrashed) params.set('trashed', 'true');
 
       const res = await fetch(`/api/admin/vendors?${params}`);
       if (!res.ok) throw new Error('Failed to fetch vendors');
@@ -98,7 +107,7 @@ export default function AdminVendorsPage() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.limit, searchTerm, statusFilter, tierFilter]);
+  }, [pagination.page, pagination.limit, searchTerm, statusFilter, tierFilter, showTrashed]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,10 +136,41 @@ export default function AdminVendorsPage() {
       setActionLoading(null);
       setShowRejectModal(false);
       setShowCreditsModal(false);
+      setShowDeleteModal(false);
       setSelectedVendor(null);
       setRejectReason('');
       setCreditsToAdd('');
       setCreditsReason('');
+      setDeleteReason('');
+    }
+  };
+
+  const handleDelete = async (vendorId: string, reason?: string) => {
+    setActionLoading(vendorId);
+    try {
+      const params = new URLSearchParams();
+      if (reason) params.set('reason', reason);
+
+      const res = await fetch(`/api/admin/vendors/${vendorId}?${params}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Delete failed');
+      }
+      const data = await res.json();
+      if (data.warning) {
+        alert(data.message + '\n\n' + data.warning);
+      }
+      fetchVendors();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(error instanceof Error ? error.message : 'Delete failed');
+    } finally {
+      setActionLoading(null);
+      setShowDeleteModal(false);
+      setSelectedVendor(null);
+      setDeleteReason('');
     }
   };
 
@@ -188,11 +228,14 @@ export default function AdminVendorsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <button
-          onClick={() => setStatusFilter('pending')}
+          onClick={() => {
+            setShowTrashed(false);
+            setStatusFilter('pending');
+          }}
           className={`p-4 rounded-xl border transition-all ${
-            statusFilter === 'pending'
+            statusFilter === 'pending' && !showTrashed
               ? 'bg-yellow-50 border-yellow-200'
               : 'bg-white border-gray-200 hover:border-yellow-200'
           }`}
@@ -201,9 +244,12 @@ export default function AdminVendorsPage() {
           <p className="text-sm text-gray-600">Pending</p>
         </button>
         <button
-          onClick={() => setStatusFilter('verified')}
+          onClick={() => {
+            setShowTrashed(false);
+            setStatusFilter('verified');
+          }}
           className={`p-4 rounded-xl border transition-all ${
-            statusFilter === 'verified'
+            statusFilter === 'verified' && !showTrashed
               ? 'bg-green-50 border-green-200'
               : 'bg-white border-gray-200 hover:border-green-200'
           }`}
@@ -212,15 +258,32 @@ export default function AdminVendorsPage() {
           <p className="text-sm text-gray-600">Verified</p>
         </button>
         <button
-          onClick={() => setStatusFilter('rejected')}
+          onClick={() => {
+            setShowTrashed(false);
+            setStatusFilter('rejected');
+          }}
           className={`p-4 rounded-xl border transition-all ${
-            statusFilter === 'rejected'
+            statusFilter === 'rejected' && !showTrashed
               ? 'bg-red-50 border-red-200'
               : 'bg-white border-gray-200 hover:border-red-200'
           }`}
         >
           <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
           <p className="text-sm text-gray-600">Rejected</p>
+        </button>
+        <button
+          onClick={() => {
+            setShowTrashed(true);
+            setStatusFilter('');
+          }}
+          className={`p-4 rounded-xl border transition-all ${
+            showTrashed
+              ? 'bg-gray-100 border-gray-400'
+              : 'bg-white border-gray-200 hover:border-gray-400'
+          }`}
+        >
+          <p className="text-2xl font-bold text-gray-600">{stats.trashed}</p>
+          <p className="text-sm text-gray-600">Trashed</p>
         </button>
       </div>
 
@@ -258,12 +321,13 @@ export default function AdminVendorsPage() {
               <option value="growth">Growth</option>
               <option value="standard">Standard</option>
             </select>
-            {(statusFilter || tierFilter || searchTerm) && (
+            {(statusFilter || tierFilter || searchTerm || showTrashed) && (
               <button
                 onClick={() => {
                   setStatusFilter('');
                   setTierFilter('');
                   setSearchTerm('');
+                  setShowTrashed(false);
                 }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -358,67 +422,103 @@ export default function AdminVendorsPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {vendor.verificationStatus === 'pending' && (
+                          {showTrashed ? (
+                            /* Trashed vendors actions */
                             <>
                               <button
-                                onClick={() => handleAction(vendor._id, 'verify')}
+                                onClick={() => handleAction(vendor._id, 'restore')}
                                 disabled={actionLoading === vendor._id}
                                 className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                                title="Verify"
+                                title="Restore"
                               >
-                                <CheckCircle className="w-5 h-5" />
+                                <RotateCcw className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => handleAction(vendor._id, 'permanentDelete')}
+                                disabled={actionLoading === vendor._id}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                title="Permanent Delete"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </>
+                          ) : (
+                            /* Regular vendor actions */
+                            <>
+                              {vendor.verificationStatus === 'pending' && (
+                                <>
+                                  <button
+                                    onClick={() => handleAction(vendor._id, 'verify')}
+                                    disabled={actionLoading === vendor._id}
+                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                                    title="Verify"
+                                  >
+                                    <CheckCircle className="w-5 h-5" />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedVendor(vendor);
+                                      setShowRejectModal(true);
+                                    }}
+                                    disabled={actionLoading === vendor._id}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                    title="Reject"
+                                  >
+                                    <XCircle className="w-5 h-5" />
+                                  </button>
+                                </>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setSelectedVendor(vendor);
+                                  setShowCreditsModal(true);
+                                }}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Add Credits"
+                              >
+                                <CreditCard className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleAction(vendor._id, vendor.isActive ? 'deactivate' : 'activate')
+                                }
+                                disabled={actionLoading === vendor._id}
+                                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                                  vendor.isActive
+                                    ? 'text-orange-600 hover:bg-orange-50'
+                                    : 'text-green-600 hover:bg-green-50'
+                                }`}
+                                title={vendor.isActive ? 'Deactivate' : 'Activate'}
+                              >
+                                <Ban className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleAction(vendor._id, 'feature')
+                                }
+                                disabled={actionLoading === vendor._id}
+                                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                                  vendor.isFeatured
+                                    ? 'text-yellow-600 hover:bg-yellow-50'
+                                    : 'text-gray-400 hover:bg-gray-50'
+                                }`}
+                                title={vendor.isFeatured ? 'Unfeature' : 'Feature'}
+                              >
+                                <Star className={`w-5 h-5 ${vendor.isFeatured ? 'fill-yellow-500' : ''}`} />
                               </button>
                               <button
                                 onClick={() => {
                                   setSelectedVendor(vendor);
-                                  setShowRejectModal(true);
+                                  setShowDeleteModal(true);
                                 }}
                                 disabled={actionLoading === vendor._id}
                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                                title="Reject"
+                                title="Delete"
                               >
-                                <XCircle className="w-5 h-5" />
+                                <Trash2 className="w-5 h-5" />
                               </button>
                             </>
                           )}
-                          <button
-                            onClick={() => {
-                              setSelectedVendor(vendor);
-                              setShowCreditsModal(true);
-                            }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Add Credits"
-                          >
-                            <CreditCard className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleAction(vendor._id, vendor.isActive ? 'deactivate' : 'activate')
-                            }
-                            disabled={actionLoading === vendor._id}
-                            className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
-                              vendor.isActive
-                                ? 'text-orange-600 hover:bg-orange-50'
-                                : 'text-green-600 hover:bg-green-50'
-                            }`}
-                            title={vendor.isActive ? 'Deactivate' : 'Activate'}
-                          >
-                            <Ban className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleAction(vendor._id, 'feature')
-                            }
-                            disabled={actionLoading === vendor._id}
-                            className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
-                              vendor.isFeatured
-                                ? 'text-yellow-600 hover:bg-yellow-50'
-                                : 'text-gray-400 hover:bg-gray-50'
-                            }`}
-                            title={vendor.isFeatured ? 'Unfeature' : 'Feature'}
-                          >
-                            <Star className={`w-5 h-5 ${vendor.isFeatured ? 'fill-yellow-500' : ''}`} />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -585,6 +685,70 @@ export default function AdminVendorsPage() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
                 Add Credits
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Vendor Modal */}
+      {showDeleteModal && selectedVendor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete Vendor</h3>
+            </div>
+            <p className="text-gray-600 mb-2">
+              Are you sure you want to delete <strong>{selectedVendor.storeName}</strong>?
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-yellow-800">
+                <strong>30-Day Grace Period:</strong> The vendor will be moved to trash and can be restored within 30 days. After that, all data will be permanently deleted.
+              </p>
+            </div>
+            {selectedVendor.viewCredits > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-orange-800">
+                  <strong>Warning:</strong> This vendor has{' '}
+                  <strong>{selectedVendor.viewCredits.toLocaleString()}</strong> unused credits that will be lost if not restored.
+                </p>
+              </div>
+            )}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reason for deletion (optional)
+              </label>
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Enter reason for deleting this vendor..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                rows={2}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedVendor(null);
+                  setDeleteReason('');
+                }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(selectedVendor._id, deleteReason || undefined)}
+                disabled={actionLoading === selectedVendor._id}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {actionLoading === selectedVendor._id && (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                )}
+                Delete Vendor
               </button>
             </div>
           </div>
