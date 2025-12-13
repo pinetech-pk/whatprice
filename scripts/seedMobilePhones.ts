@@ -550,14 +550,15 @@ async function createVendorProducts(
   // Update master product price aggregates
   for (let i = 0; i < masterProducts.length; i++) {
     const mp = masterProducts[i];
+    const mpId = (mp as unknown as { _id: mongoose.Types.ObjectId })._id;
     const vendorProducts = products.filter(
-      p => p.masterProductId?.toString() === mp._id.toString()
+      p => p.masterProductId?.toString() === mpId.toString()
     );
     const prices = vendorProducts.map(p => p.price);
 
     if (prices.length > 0) {
       await MasterProduct.updateOne(
-        { _id: mp._id },
+        { _id: mpId },
         {
           minPrice: Math.min(...prices),
           maxPrice: Math.max(...prices),
