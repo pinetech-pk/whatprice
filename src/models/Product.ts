@@ -70,6 +70,10 @@ export interface IProduct {
   createdBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+
+  // Soft Delete
+  deletedAt?: Date;
+  deleteScheduledFor?: Date;
 }
 
 export type IProductDocument = IProduct & Document;
@@ -322,6 +326,10 @@ const ProductSchema = new Schema<IProductDocument>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+
+    // Soft Delete
+    deletedAt: { type: Date, default: null },
+    deleteScheduledFor: { type: Date, default: null },
   },
   {
     timestamps: true,
@@ -330,6 +338,7 @@ const ProductSchema = new Schema<IProductDocument>(
 
 // Indexes
 ProductSchema.index({ slug: 1 });
+ProductSchema.index({ deletedAt: 1 }); // For soft-delete queries
 ProductSchema.index({ vendorId: 1 });
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ brand: 1 });

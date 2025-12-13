@@ -23,11 +23,19 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
     const tier = searchParams.get('tier'); // starter, growth, standard
     const city = searchParams.get('city');
+    const showTrashed = searchParams.get('trashed') === 'true'; // Show only trashed vendors
 
     await connectDB();
 
     // Build query
     const query: Record<string, unknown> = {};
+
+    // By default, exclude soft-deleted vendors unless explicitly requesting trashed
+    if (showTrashed) {
+      query.deletedAt = { $ne: null };
+    } else {
+      query.deletedAt = null;
+    }
 
     if (status) {
       query.verificationStatus = status;
@@ -54,14 +62,17 @@ export async function GET(request: Request) {
     const [vendors, total] = await Promise.all([
       Vendor.find(query)
         .populate('userId', 'firstName lastName email')
-        .sort({ createdAt: -1 })
+        .sort(showTrashed ? { deletedAt: -1 } : { createdAt: -1 })
         .skip(skip)
         .limit(limit),
       Vendor.countDocuments(query),
     ]);
 
-    // Get stats
+    // Get stats (excluding trashed vendors)
     const stats = await Vendor.aggregate([
+      {
+        $match: { deletedAt: null },
+      },
       {
         $group: {
           _id: '$verificationStatus',
@@ -70,14 +81,20 @@ export async function GET(request: Request) {
       },
     ]);
 
+    // Count trashed vendors separately
+    const trashedCount = await Vendor.countDocuments({ deletedAt: { $ne: null } });
+
     const statusCounts = {
       pending: 0,
       verified: 0,
       rejected: 0,
+      trashed: trashedCount,
     };
 
     for (const stat of stats) {
-      statusCounts[stat._id as keyof typeof statusCounts] = stat.count;
+      if (stat._id in statusCounts) {
+        statusCounts[stat._id as keyof typeof statusCounts] = stat.count;
+      }
     }
 
     return NextResponse.json({

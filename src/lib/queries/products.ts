@@ -24,9 +24,11 @@ export async function getProducts(filters: ProductFilters = {}) {
     const sort = filters.sort || 'recommended';
 
     // Build query for active products from verified vendors
+    // Exclude soft-deleted products
     const query: Record<string, unknown> = {
       isActive: true,
       isInStock: true,
+      deletedAt: null, // Exclude soft-deleted products
     };
 
     if (filters.categoryId) {
@@ -56,10 +58,11 @@ export async function getProducts(filters: ProductFilters = {}) {
       }
     }
 
-    // Get verified vendor IDs
+    // Get verified vendor IDs (exclude soft-deleted vendors)
     const vendorQuery: Record<string, unknown> = {
       verificationStatus: 'verified',
       isActive: true,
+      deletedAt: null, // Exclude soft-deleted vendors
     };
 
     if (filters.city) {
@@ -184,33 +187,41 @@ export async function getProductBySlug(slug: string) {
   try {
     await connectDB();
 
-    const product = await Product.findOne({ slug, isActive: true })
+    const product = await Product.findOne({ slug, isActive: true, deletedAt: null })
       .populate('category', 'name slug')
-      .populate('vendorId', 'storeName slug description logo rating reviewCount address phone')
+      .populate('vendorId', 'storeName slug description logo rating reviewCount address phone deletedAt')
       .lean();
 
     if (!product) {
       return null;
     }
 
-    // Get related products (same category)
+    // Check if vendor is not soft-deleted
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((product as any).vendorId?.deletedAt) {
+      return null; // Product's vendor is deleted
+    }
+
+    // Get related products (same category, excluding soft-deleted)
     const relatedProducts = await Product.find({
       category: product.category?._id,
       _id: { $ne: product._id },
       isActive: true,
       isInStock: true,
+      deletedAt: null,
     })
       .populate('vendorId', 'storeName slug rating')
       .limit(4)
       .select('name slug images price originalPrice rating reviewCount vendorId')
       .lean();
 
-    // Get more products from the same vendor
+    // Get more products from the same vendor (excluding soft-deleted)
     const vendorProducts = await Product.find({
       vendorId: product.vendorId?._id,
       _id: { $ne: product._id },
       isActive: true,
       isInStock: true,
+      deletedAt: null,
     })
       .populate('vendorId', 'storeName slug rating')
       .limit(4)
