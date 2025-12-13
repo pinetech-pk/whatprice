@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { ProductCard } from "@/components/public/ProductCard";
+import { getProductBySlug } from "@/lib/queries/products";
 import {
   ChevronRight,
   Star,
@@ -19,87 +20,13 @@ import {
   Store,
 } from "lucide-react";
 
-interface ProductDetail {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  brand?: string;
-  productModel?: string;
-  sku?: string;
-  images: string[];
-  price: number;
-  originalPrice?: number;
-  currency: string;
-  stock: number;
-  isInStock: boolean;
-  category: {
-    _id: string;
-    name: string;
-    slug: string;
-  };
-  specifications?: Record<string, string>;
-  features?: string[];
-  tags?: string[];
-  rating: number;
-  reviewCount: number;
-  viewCount: number;
-  vendor: {
-    _id: string;
-    storeName: string;
-    slug: string;
-    description?: string;
-    logo?: string;
-    rating: number;
-    reviewCount: number;
-    address?: {
-      city?: string;
-      street?: string;
-    };
-    phone?: string;
-    whatsapp?: string;
-  };
-}
-
-interface RelatedProduct {
-  _id: string;
-  name: string;
-  slug: string;
-  images: string[];
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  vendorId: {
-    storeName: string;
-    slug: string;
-    rating: number;
-  };
-}
-
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getProduct(slug: string) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/products/${slug}`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) return null;
-
-    return res.json();
-  } catch (error) {
-    console.error('Error fetching product:', error);
-    return null;
-  }
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getProduct(slug);
+  const data = await getProductBySlug(slug);
 
   if (!data?.product) {
     return { title: "Product Not Found - WhatPrice" };
@@ -120,17 +47,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const data = await getProduct(slug);
+  const data = await getProductBySlug(slug);
 
   if (!data?.product) {
     notFound();
   }
 
-  const { product, relatedProducts, vendorProducts }: {
-    product: ProductDetail;
-    relatedProducts: RelatedProduct[];
-    vendorProducts: RelatedProduct[];
-  } = data;
+  const { product, relatedProducts, vendorProducts } = data;
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -191,7 +114,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 </div>
                 {product.images && product.images.length > 1 && (
                   <div className="grid grid-cols-4 gap-2">
-                    {product.images.slice(0, 4).map((image, index) => (
+                    {product.images.slice(0, 4).map((image: string, index: number) => (
                       <div
                         key={index}
                         className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500"
@@ -287,7 +210,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   <div className="mb-6">
                     <h3 className="font-medium text-gray-900 mb-2">Key Features</h3>
                     <ul className="space-y-1">
-                      {product.features.slice(0, 5).map((feature, index) => (
+                      {product.features.slice(0, 5).map((feature: string, index: number) => (
                         <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
                           <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                           {feature}
@@ -355,7 +278,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                     {Object.entries(product.specifications).map(([key, value]) => (
                       <div key={key} className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-500">{key}</span>
-                        <span className="font-medium text-gray-900">{value}</span>
+                        <span className="font-medium text-gray-900">{value as string}</span>
                       </div>
                     ))}
                   </div>
@@ -367,7 +290,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 <div className="bg-white rounded-xl border border-gray-100 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Tags</h2>
                   <div className="flex flex-wrap gap-2">
-                    {product.tags.map((tag, index) => (
+                    {product.tags.map((tag: string, index: number) => (
                       <Link
                         key={index}
                         href={`/products?search=${encodeURIComponent(tag)}`}

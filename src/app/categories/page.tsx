@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
+import { getCategories } from "@/lib/queries/products";
 import {
   Laptop,
   Smartphone,
@@ -73,25 +74,6 @@ interface Category {
   children?: Category[];
 }
 
-async function getCategories(): Promise<Category[]> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/categories?format=tree`, {
-      next: { revalidate: 300 }, // Cache for 5 minutes
-    });
-
-    if (!res.ok) {
-      throw new Error('Failed to fetch categories');
-    }
-
-    const data = await res.json();
-    return data.categories || [];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
-}
-
 function CategoryCard({ category }: { category: Category }) {
   const IconComponent = categoryIcons[category.slug] || Laptop;
   const colorClass = categoryColors[category.slug] || "bg-blue-500";
@@ -142,7 +124,7 @@ function CategoryCard({ category }: { category: Category }) {
 }
 
 export default async function CategoriesPage() {
-  const categories = await getCategories();
+  const categories = await getCategories('tree') as Category[];
 
   return (
     <PublicLayout>

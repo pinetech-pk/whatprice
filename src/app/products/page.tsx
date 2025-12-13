@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { ProductCard } from "@/components/public/ProductCard";
+import { getProducts, getCategories } from "@/lib/queries/products";
 import {
   ChevronRight,
   Filter,
@@ -17,83 +18,8 @@ export const metadata: Metadata = {
     "Browse all products on WhatPrice. Compare prices from verified vendors across Pakistan and find the best deals.",
 };
 
-interface Product {
-  _id: string;
-  name: string;
-  slug: string;
-  images: string[];
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  vendorId: {
-    storeName: string;
-    slug: string;
-    rating: number;
-    address?: { city?: string };
-  };
-  category: {
-    name: string;
-    slug: string;
-  };
-  placementTier: string;
-}
-
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  parent?: string | null;
-}
-
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-async function getProducts(searchParams: Record<string, string | undefined>) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const params = new URLSearchParams();
-
-    if (searchParams.search) params.set('search', searchParams.search);
-    if (searchParams.category) params.set('category', searchParams.category);
-    if (searchParams.sort) params.set('sort', searchParams.sort);
-    if (searchParams.minPrice) params.set('minPrice', searchParams.minPrice);
-    if (searchParams.maxPrice) params.set('maxPrice', searchParams.maxPrice);
-    if (searchParams.brand) params.set('brand', searchParams.brand);
-    if (searchParams.city) params.set('city', searchParams.city);
-    if (searchParams.page) params.set('page', searchParams.page);
-
-    const res = await fetch(`${baseUrl}/api/products?${params.toString()}`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) {
-      return { products: [], filters: { brands: [], priceRange: { minPrice: 0, maxPrice: 0 } }, pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
-    }
-
-    return res.json();
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    return { products: [], filters: { brands: [], priceRange: { minPrice: 0, maxPrice: 0 } }, pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
-  }
-}
-
-async function getCategories(): Promise<Category[]> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/categories`, {
-      next: { revalidate: 300 },
-    });
-
-    if (!res.ok) return [];
-
-    const data = await res.json();
-    return data.categories || [];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
 }
 
 export default async function ProductsPage({ searchParams }: PageProps) {
@@ -102,15 +28,15 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const [{ products, filters, pagination }, categories] = await Promise.all([
     getProducts({
       search: resolvedSearchParams.search as string | undefined,
-      category: resolvedSearchParams.category as string | undefined,
+      categoryId: resolvedSearchParams.category as string | undefined,
       sort: resolvedSearchParams.sort as string | undefined,
       minPrice: resolvedSearchParams.minPrice as string | undefined,
       maxPrice: resolvedSearchParams.maxPrice as string | undefined,
       brand: resolvedSearchParams.brand as string | undefined,
       city: resolvedSearchParams.city as string | undefined,
-      page: resolvedSearchParams.page as string | undefined,
+      page: resolvedSearchParams.page ? parseInt(resolvedSearchParams.page as string) : 1,
     }),
-    getCategories(),
+    getCategories('flat'),
   ]);
 
   const currentSort = (resolvedSearchParams.sort as string) || 'recommended';
@@ -120,7 +46,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const selectedBrand = resolvedSearchParams.brand as string | undefined;
 
   // Get parent categories only (for filter sidebar)
-  const parentCategories = categories.filter(cat => !cat.parent);
+  const parentCategories = categories.filter((cat) => !cat.parent);
 
   return (
     <PublicLayout>
@@ -286,21 +212,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
                     <span className="font-medium">{pagination.total}</span> products
                   </div>
                   <div className="flex items-center gap-4">
-                    <select
-                      defaultValue={currentSort}
-                      onChange={(e) => {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('sort', e.target.value);
-                        window.location.href = url.toString();
-                      }}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="recommended">Recommended</option>
-                      <option value="price_low">Price: Low to High</option>
-                      <option value="price_high">Price: High to Low</option>
-                      <option value="newest">Newest First</option>
-                      <option value="rating">Highest Rated</option>
-                    </select>
+                    <SortSelect currentSort={currentSort} />
                   </div>
                 </div>
               </div>
@@ -308,7 +220,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
               {/* Products Grid */}
               {products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product: Product) => (
+                  {products.map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}
                 </div>
@@ -363,5 +275,28 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </div>
       </div>
     </PublicLayout>
+  );
+}
+
+// Client component for sort select
+function SortSelect({ currentSort }: { currentSort: string }) {
+  return (
+    <select
+      defaultValue={currentSort}
+      onChange={(e) => {
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.set('sort', e.target.value);
+          window.location.href = url.toString();
+        }
+      }}
+      className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="recommended">Recommended</option>
+      <option value="price_low">Price: Low to High</option>
+      <option value="price_high">Price: High to Low</option>
+      <option value="newest">Newest First</option>
+      <option value="rating">Highest Rated</option>
+    </select>
   );
 }
