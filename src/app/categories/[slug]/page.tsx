@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { ProductCard } from "@/components/public/ProductCard";
+import { getCategoryBySlug, getProducts } from "@/lib/queries/products";
 import {
   ChevronRight,
   Filter,
@@ -19,94 +20,14 @@ interface Category {
   children?: Category[];
 }
 
-interface Product {
-  _id: string;
-  name: string;
-  slug: string;
-  images: string[];
-  price: number;
-  originalPrice?: number;
-  rating: number;
-  reviewCount: number;
-  vendorId: {
-    storeName: string;
-    slug: string;
-    rating: number;
-    address?: { city?: string };
-  };
-  category: {
-    name: string;
-    slug: string;
-  };
-  placementTier: string;
-}
-
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-async function getCategory(slug: string): Promise<Category | null> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/categories?format=tree`, {
-      next: { revalidate: 300 },
-    });
-
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    const categories: Category[] = data.categories || [];
-
-    // Find category by slug (including in children)
-    const findCategory = (cats: Category[], targetSlug: string): Category | null => {
-      for (const cat of cats) {
-        if (cat.slug === targetSlug) return cat;
-        if (cat.children) {
-          const found = findCategory(cat.children, targetSlug);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    return findCategory(categories, slug);
-  } catch (error) {
-    console.error('Error fetching category:', error);
-    return null;
-  }
-}
-
-async function getCategoryProducts(categoryId: string, searchParams: Record<string, string | undefined>) {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const params = new URLSearchParams();
-    params.set('category', categoryId);
-
-    if (searchParams.sort) params.set('sort', searchParams.sort);
-    if (searchParams.minPrice) params.set('minPrice', searchParams.minPrice);
-    if (searchParams.maxPrice) params.set('maxPrice', searchParams.maxPrice);
-    if (searchParams.brand) params.set('brand', searchParams.brand);
-    if (searchParams.page) params.set('page', searchParams.page);
-
-    const res = await fetch(`${baseUrl}/api/products?${params.toString()}`, {
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) {
-      return { products: [], filters: { brands: [], priceRange: { minPrice: 0, maxPrice: 0 } }, pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
-    }
-
-    return res.json();
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    return { products: [], filters: { brands: [], priceRange: { minPrice: 0, maxPrice: 0 } }, pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
-  }
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await getCategory(slug);
+  const category = await getCategoryBySlug(slug);
 
   if (!category) {
     return { title: "Category Not Found - WhatPrice" };
@@ -122,22 +43,20 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const { slug } = await params;
   const resolvedSearchParams = await searchParams;
 
-  const category = await getCategory(slug);
+  const category = await getCategoryBySlug(slug) as Category | null;
 
   if (!category) {
     notFound();
   }
 
-  const { products, filters, pagination } = await getCategoryProducts(
-    category._id,
-    {
-      sort: resolvedSearchParams.sort as string | undefined,
-      minPrice: resolvedSearchParams.minPrice as string | undefined,
-      maxPrice: resolvedSearchParams.maxPrice as string | undefined,
-      brand: resolvedSearchParams.brand as string | undefined,
-      page: resolvedSearchParams.page as string | undefined,
-    }
-  );
+  const { products, filters, pagination } = await getProducts({
+    categoryId: category._id,
+    sort: resolvedSearchParams.sort as string | undefined,
+    minPrice: resolvedSearchParams.minPrice as string | undefined,
+    maxPrice: resolvedSearchParams.maxPrice as string | undefined,
+    brand: resolvedSearchParams.brand as string | undefined,
+    page: resolvedSearchParams.page ? parseInt(resolvedSearchParams.page as string) : 1,
+  });
 
   const currentSort = (resolvedSearchParams.sort as string) || 'recommended';
   const currentPage = parseInt((resolvedSearchParams.page as string) || '1');
@@ -245,21 +164,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                     <span className="font-medium">{pagination.total}</span> products
                   </div>
                   <div className="flex items-center gap-4">
-                    <select
-                      value={currentSort}
-                      onChange={(e) => {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('sort', e.target.value);
-                        window.location.href = url.toString();
-                      }}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="recommended">Recommended</option>
-                      <option value="price_low">Price: Low to High</option>
-                      <option value="price_high">Price: High to Low</option>
-                      <option value="newest">Newest First</option>
-                      <option value="rating">Highest Rated</option>
-                    </select>
+                    <SortSelect currentSort={currentSort} />
                   </div>
                 </div>
               </div>
@@ -267,7 +172,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               {/* Products Grid */}
               {products.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product: Product) => (
+                  {products.map((product) => (
                     <ProductCard key={product._id} product={product} />
                   ))}
                 </div>
@@ -320,5 +225,28 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         </div>
       </div>
     </PublicLayout>
+  );
+}
+
+// Client component for sort select
+function SortSelect({ currentSort }: { currentSort: string }) {
+  return (
+    <select
+      defaultValue={currentSort}
+      onChange={(e) => {
+        if (typeof window !== 'undefined') {
+          const url = new URL(window.location.href);
+          url.searchParams.set('sort', e.target.value);
+          window.location.href = url.toString();
+        }
+      }}
+      className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="recommended">Recommended</option>
+      <option value="price_low">Price: Low to High</option>
+      <option value="price_high">Price: High to Low</option>
+      <option value="newest">Newest First</option>
+      <option value="rating">Highest Rated</option>
+    </select>
   );
 }

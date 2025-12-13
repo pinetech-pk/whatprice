@@ -13,16 +13,16 @@ interface Product {
   originalPrice?: number;
   rating: number;
   reviewCount: number;
-  vendorId: {
+  vendorId?: {
     storeName: string;
     slug: string;
     rating?: number;
     address?: { city?: string };
-  };
+  } | null;
   category?: {
     name: string;
     slug: string;
-  };
+  } | null;
   placementTier?: string;
 }
 
