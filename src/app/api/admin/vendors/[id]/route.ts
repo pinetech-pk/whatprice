@@ -226,6 +226,49 @@ export async function PUT(
       });
     }
 
+    // Handle restore from trash
+    if (body.action === 'restore') {
+      if (!vendor.deletedAt) {
+        return NextResponse.json(
+          { error: 'Vendor is not in trash' },
+          { status: 400 }
+        );
+      }
+
+      await vendor.restore();
+
+      // Also reactivate the user account
+      await User.updateOne(
+        { _id: vendor.userId },
+        { isActive: true }
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: 'Vendor restored successfully',
+      });
+    }
+
+    // Handle permanent delete (immediate, no grace period)
+    if (body.action === 'permanentDelete') {
+      // This should only work for vendors already in trash
+      if (!vendor.deletedAt) {
+        return NextResponse.json(
+          { error: 'Vendor must be in trash before permanent deletion. Use DELETE method first.' },
+          { status: 400 }
+        );
+      }
+
+      // Import the cleanup service
+      const { permanentlyDeleteVendor } = await import('@/lib/services/vendorCleanup');
+      await permanentlyDeleteVendor(vendor._id.toString());
+
+      return NextResponse.json({
+        success: true,
+        message: 'Vendor permanently deleted',
+      });
+    }
+
     return NextResponse.json(
       { error: 'Invalid action' },
       { status: 400 }
@@ -239,7 +282,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Delete vendor (soft delete)
+// DELETE: Soft delete vendor (moves to trash with 30-day grace period)
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -250,6 +293,10 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    const url = new URL(request.url);
+    const reason = url.searchParams.get('reason') || undefined;
+    const graceDays = parseInt(url.searchParams.get('graceDays') || '30');
+
     await connectDB();
 
     const vendor = await Vendor.findById(id);
@@ -257,15 +304,23 @@ export async function DELETE(
       return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
     }
 
-    // Soft delete - deactivate vendor and their products
-    vendor.isActive = false;
-    await vendor.save();
+    // Check if already in trash
+    if (vendor.deletedAt) {
+      return NextResponse.json(
+        { error: 'Vendor is already in trash' },
+        { status: 400 }
+      );
+    }
 
-    // Deactivate all vendor products
-    await Product.updateMany(
-      { vendorId: vendor._id },
-      { isActive: false }
-    );
+    // Check for remaining credits - warn admin
+    const hasCredits = vendor.viewCredits > 0;
+
+    // Get a placeholder admin ID (in production, get from session)
+    // For now, we'll use the vendor's own userId as deletedBy
+    const adminId = vendor.userId;
+
+    // Soft delete using the model method
+    await vendor.softDelete(adminId, reason, graceDays);
 
     // Also deactivate the user account
     await User.updateOne(
@@ -273,9 +328,17 @@ export async function DELETE(
       { isActive: false }
     );
 
+    const deleteDate = new Date();
+    deleteDate.setDate(deleteDate.getDate() + graceDays);
+
     return NextResponse.json({
       success: true,
-      message: 'Vendor account deactivated',
+      message: `Vendor moved to trash. Will be permanently deleted on ${deleteDate.toLocaleDateString()}.`,
+      warning: hasCredits
+        ? `Warning: Vendor has ${vendor.viewCredits} unused credits that will be lost.`
+        : undefined,
+      deleteScheduledFor: deleteDate,
+      graceDays,
     });
   } catch (error) {
     console.error('Admin delete vendor error:', error);

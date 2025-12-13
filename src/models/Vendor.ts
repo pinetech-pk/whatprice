@@ -61,6 +61,12 @@ export interface IVendor extends Document {
   createdAt: Date;
   updatedAt: Date;
 
+  // Soft Delete
+  deletedAt?: Date;
+  deleteScheduledFor?: Date;
+  deletedBy?: mongoose.Types.ObjectId;
+  deletionReason?: string;
+
   // Instance Methods
   getCpvRate(): number;
   updateGraduationTier(): Promise<void>;
@@ -69,6 +75,8 @@ export interface IVendor extends Document {
   resetDailySpend(): Promise<void>;
   canSpend(amount: number): boolean;
   updateConversionRate(): Promise<void>;
+  softDelete(deletedBy: mongoose.Types.ObjectId, reason?: string, graceDays?: number): Promise<void>;
+  restore(): Promise<void>;
 }
 
 const VendorAddressSchema = new Schema<IVendorAddress>(
@@ -194,6 +202,12 @@ const VendorSchema = new Schema<IVendor>(
 
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
+
+    // Soft Delete
+    deletedAt: { type: Date, default: null },
+    deleteScheduledFor: { type: Date, default: null },
+    deletedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    deletionReason: { type: String, trim: true },
   },
   {
     timestamps: true,
@@ -208,6 +222,8 @@ VendorSchema.index({ graduationTier: 1 });
 VendorSchema.index({ isActive: 1, verificationStatus: 1 });
 VendorSchema.index({ 'address.city': 1 });
 VendorSchema.index({ rating: -1 });
+VendorSchema.index({ deletedAt: 1 }); // For soft-delete queries
+VendorSchema.index({ deleteScheduledFor: 1 }); // For cleanup cron job
 
 // Pre-save: Generate slug
 VendorSchema.pre('save', function (next) {
@@ -291,21 +307,88 @@ VendorSchema.methods.updateConversionRate = async function (): Promise<void> {
   }
 };
 
+// Method: Soft delete vendor (moves to trash with grace period)
+VendorSchema.methods.softDelete = async function (
+  deletedBy: mongoose.Types.ObjectId,
+  reason?: string,
+  graceDays: number = 30
+): Promise<void> {
+  const now = new Date();
+  const deleteDate = new Date(now);
+  deleteDate.setDate(deleteDate.getDate() + graceDays);
+
+  this.deletedAt = now;
+  this.deleteScheduledFor = deleteDate;
+  this.deletedBy = deletedBy;
+  this.deletionReason = reason || 'Deleted by admin';
+  this.isActive = false;
+
+  await this.save();
+
+  // Also soft-delete all vendor's products
+  const Product = mongoose.model('Product');
+  await Product.updateMany(
+    { vendorId: this._id },
+    {
+      isActive: false,
+      deletedAt: now,
+      deleteScheduledFor: deleteDate,
+    }
+  );
+};
+
+// Method: Restore vendor from trash
+VendorSchema.methods.restore = async function (): Promise<void> {
+  this.deletedAt = undefined;
+  this.deleteScheduledFor = undefined;
+  this.deletedBy = undefined;
+  this.deletionReason = undefined;
+  this.isActive = true;
+
+  await this.save();
+
+  // Also restore all vendor's products
+  const Product = mongoose.model('Product');
+  await Product.updateMany(
+    { vendorId: this._id, deletedAt: { $ne: null } },
+    {
+      isActive: true,
+      $unset: { deletedAt: 1, deleteScheduledFor: 1 },
+    }
+  );
+};
+
 // Static: Find by user ID
 VendorSchema.statics.findByUserId = function (userId: mongoose.Types.ObjectId) {
   return this.findOne({ userId });
 };
 
-// Static: Get active verified vendors
+// Static: Get active verified vendors (excludes soft-deleted)
 VendorSchema.statics.getActiveVendors = function (city?: string) {
   const query: Record<string, unknown> = {
     isActive: true,
     verificationStatus: 'verified',
+    deletedAt: null, // Exclude soft-deleted vendors
   };
   if (city) {
     query['address.city'] = city;
   }
   return this.find(query).sort({ rating: -1, totalViews: -1 });
+};
+
+// Static: Get vendors scheduled for permanent deletion
+VendorSchema.statics.getVendorsForPermanentDeletion = function () {
+  return this.find({
+    deletedAt: { $ne: null },
+    deleteScheduledFor: { $lte: new Date() },
+  });
+};
+
+// Static: Get trashed vendors (for admin trash view)
+VendorSchema.statics.getTrashedVendors = function () {
+  return this.find({
+    deletedAt: { $ne: null },
+  }).sort({ deletedAt: -1 });
 };
 
 const Vendor: Model<IVendor> = mongoose.models.Vendor || mongoose.model<IVendor>('Vendor', VendorSchema);
