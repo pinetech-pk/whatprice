@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, LogOut, Store, LayoutDashboard, Search, ChevronDown } from "lucide-react";
+import { Menu, X, LogOut, Store, LayoutDashboard, Search } from "lucide-react";
 import Logo from "./Logo";
 
 interface NavigationLink {
