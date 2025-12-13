@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { ProductCard } from "@/components/public/ProductCard";
+import { SortSelect } from "@/components/public/SortSelect";
 import { getCategoryBySlug, getProducts } from "@/lib/queries/products";
 import {
   ChevronRight,
@@ -225,28 +226,5 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         </div>
       </div>
     </PublicLayout>
-  );
-}
-
-// Client component for sort select
-function SortSelect({ currentSort }: { currentSort: string }) {
-  return (
-    <select
-      defaultValue={currentSort}
-      onChange={(e) => {
-        if (typeof window !== 'undefined') {
-          const url = new URL(window.location.href);
-          url.searchParams.set('sort', e.target.value);
-          window.location.href = url.toString();
-        }
-      }}
-      className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="recommended">Recommended</option>
-      <option value="price_low">Price: Low to High</option>
-      <option value="price_high">Price: High to Low</option>
-      <option value="newest">Newest First</option>
-      <option value="rating">Highest Rated</option>
-    </select>
   );
 }
