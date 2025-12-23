@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Loader2,
   Briefcase,
+  ClipboardList,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -25,6 +26,7 @@ interface AdminLayoutProps {
 const navItems = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Vendors', href: '/admin/vendors', icon: Users },
+  { name: 'Product Requests', href: '/admin/product-requests', icon: ClipboardList },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Products', href: '/admin/products', icon: Package },
   { name: 'Transactions', href: '/admin/transactions', icon: CreditCard },
