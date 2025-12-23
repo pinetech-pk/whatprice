@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import connectDB from '@/lib/db/connection';
 import MasterProductRequest from '@/models/MasterProductRequest';
+// Import models needed for populate to register their schemas
+import '@/models/Vendor';
+import '@/models/Category';
+import '@/models/User';
+import '@/models/MasterProduct';
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
@@ -17,18 +22,6 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-
-    // Debug: Log raw collection query
-    const rawCount = await MasterProductRequest.collection.countDocuments({});
-    const rawPendingCount = await MasterProductRequest.collection.countDocuments({ status: 'pending' });
-    const rawDocs = await MasterProductRequest.collection.find({}).limit(5).toArray();
-    console.log('DEBUG - Raw collection count:', rawCount);
-    console.log('DEBUG - Raw pending count:', rawPendingCount);
-    console.log('DEBUG - Raw docs:', JSON.stringify(rawDocs, null, 2));
-
-    // Debug: Check collection name and database
-    console.log('DEBUG - Collection name:', MasterProductRequest.collection.collectionName);
-    console.log('DEBUG - Database name:', MasterProductRequest.collection.dbName);
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'pending';
@@ -105,13 +98,6 @@ export async function GET(request: Request) {
         limit,
         total,
         pages: Math.ceil(total / limit),
-      },
-      debug: {
-        rawCount,
-        rawPendingCount,
-        collectionName: MasterProductRequest.collection.collectionName,
-        dbName: MasterProductRequest.collection.dbName,
-        rawDocs: rawDocs.map(d => ({ _id: d._id, name: d.name, status: d.status })),
       },
     });
   } catch (error) {
