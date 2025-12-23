@@ -6,6 +6,8 @@ import User from '@/models/User';
 import Product from '@/models/Product';
 import ProductView from '@/models/ProductView';
 import ViewTransaction from '@/models/ViewTransaction';
+import MasterProductRequest from '@/models/MasterProductRequest';
+import MasterProduct from '@/models/MasterProduct';
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
@@ -13,7 +15,7 @@ async function isAuthenticated() {
   return !!session;
 }
 
-// GET: Get vendor details
+// GET: Get vendor details with comprehensive stats
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -26,19 +28,59 @@ export async function GET(
     const { id } = await params;
     await connectDB();
 
-    const vendor = await Vendor.findById(id).populate('userId', 'firstName lastName email phone isActive lastLogin');
+    const vendor = await Vendor.findById(id).populate('userId', 'firstName lastName email phone isActive lastLogin createdAt');
 
     if (!vendor) {
       return NextResponse.json({ error: 'Vendor not found' }, { status: 404 });
     }
 
-    // Get product stats
-    const [productCount, activeProductCount] = await Promise.all([
-      Product.countDocuments({ vendorId: vendor._id }),
-      Product.countDocuments({ vendorId: vendor._id, isActive: true }),
+    // Get product/listing stats
+    const [
+      totalListings,
+      activeListings,
+      inactiveListings,
+      comparativeListings,
+    ] = await Promise.all([
+      Product.countDocuments({ vendorId: vendor._id, deletedAt: null }),
+      Product.countDocuments({ vendorId: vendor._id, deletedAt: null, isActive: true }),
+      Product.countDocuments({ vendorId: vendor._id, deletedAt: null, isActive: false }),
+      Product.countDocuments({ vendorId: vendor._id, deletedAt: null, productType: 'comparative' }),
     ]);
 
-    // Get recent views
+    // Get MasterProductRequest stats
+    const productRequestStats = await MasterProductRequest.aggregate([
+      { $match: { vendorId: vendor._id } },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const requestCounts = {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      merged: 0,
+      total: 0,
+    };
+
+    for (const stat of productRequestStats) {
+      if (stat._id in requestCounts) {
+        requestCounts[stat._id as keyof typeof requestCounts] = stat.count;
+        requestCounts.total += stat.count;
+      }
+    }
+
+    // Get count of unique MasterProducts vendor is linked to
+    const linkedMasterProducts = await Product.distinct('masterProductId', {
+      vendorId: vendor._id,
+      deletedAt: null,
+      masterProductId: { $ne: null },
+    });
+
+    // Get recent views (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -65,27 +107,67 @@ export async function GET(
       .sort({ createdAt: -1 })
       .limit(10);
 
-    // Get top products
-    const topProducts = await Product.find({ vendorId: vendor._id })
+    // Get all-time transaction totals
+    const transactionTotals = await ViewTransaction.aggregate([
+      { $match: { vendorId: vendor._id, status: 'completed' } },
+      {
+        $group: {
+          _id: '$transactionType',
+          total: { $sum: '$creditChange' },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const transactionSummary: Record<string, { total: number; count: number }> = {};
+    for (const t of transactionTotals) {
+      transactionSummary[t._id] = { total: t.total, count: t.count };
+    }
+
+    // Get top products by views
+    const topProducts = await Product.find({ vendorId: vendor._id, deletedAt: null })
       .sort({ viewCount: -1 })
       .limit(5)
-      .select('name slug price viewCount rating isActive');
+      .select('name slug price viewCount rating isActive masterProductId productType');
+
+    // Get recent product requests
+    const recentRequests = await MasterProductRequest.find({ vendorId: vendor._id })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('name brand status createdAt highestDuplicateScore');
+
+    // Get all listings for this vendor (for detailed view)
+    const allListings = await Product.find({ vendorId: vendor._id, deletedAt: null })
+      .populate('masterProductId', 'name slug vendorCount')
+      .populate('category', 'name slug')
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .select('name slug price originalPrice stock isActive productType viewCount createdAt masterProductId category');
 
     return NextResponse.json({
       success: true,
       vendor: {
         ...vendor.toObject(),
-        productStats: {
-          total: productCount,
-          active: activeProductCount,
-        },
-        recentActivity: viewStats[0] || {
-          totalViews: 0,
-          qualifiedViews: 0,
-          totalSpent: 0,
+        stats: {
+          listings: {
+            total: totalListings,
+            active: activeListings,
+            inactive: inactiveListings,
+            comparative: comparativeListings,
+          },
+          productRequests: requestCounts,
+          linkedMasterProducts: linkedMasterProducts.length,
+          recentActivity: viewStats[0] || {
+            totalViews: 0,
+            qualifiedViews: 0,
+            totalSpent: 0,
+          },
+          transactionSummary,
         },
         recentTransactions,
         topProducts,
+        recentRequests,
+        allListings,
       },
     });
   } catch (error) {
