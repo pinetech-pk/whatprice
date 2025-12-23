@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Package,
@@ -234,7 +235,7 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <a
+            <Link
               href="/admin/vendors?status=pending"
               className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors group"
             >
@@ -248,8 +249,8 @@ export default function AdminDashboardPage() {
                 </span>
                 <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-yellow-600 transition-colors" />
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/categories"
               className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group"
             >
@@ -263,8 +264,8 @@ export default function AdminDashboardPage() {
                 </span>
                 <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/products"
               className="flex items-center justify-between p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group"
             >
@@ -278,7 +279,7 @@ export default function AdminDashboardPage() {
                 </span>
                 <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-green-600 transition-colors" />
               </div>
-            </a>
+            </Link>
           </div>
         </div>
 
