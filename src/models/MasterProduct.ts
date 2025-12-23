@@ -143,15 +143,33 @@ MasterProductSchema.pre('save', function (next) {
   next();
 });
 
-// Method: Update price aggregates
-MasterProductSchema.methods.updatePriceAggregates = async function (
-  prices: number[]
-): Promise<void> {
-  if (prices.length === 0) return;
+// Method: Update price aggregates (fetches prices from Product collection)
+MasterProductSchema.methods.updatePriceAggregates = async function (): Promise<void> {
+  // Get Product model - import dynamically to avoid circular dependency
+  const Product = mongoose.model('Product');
+
+  // Fetch all active listings for this MasterProduct
+  const listings = await Product.find({
+    masterProductId: this._id,
+    isActive: true,
+    deletedAt: null,
+  }).select('price');
+
+  const prices = listings.map((l: { price: number }) => l.price).filter((p: number) => p > 0);
+
+  if (prices.length === 0) {
+    this.vendorCount = 0;
+    this.minPrice = undefined;
+    this.maxPrice = undefined;
+    this.avgPrice = undefined;
+    this.priceLastUpdated = new Date();
+    await this.save();
+    return;
+  }
 
   this.minPrice = Math.min(...prices);
   this.maxPrice = Math.max(...prices);
-  this.avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+  this.avgPrice = prices.reduce((a: number, b: number) => a + b, 0) / prices.length;
   this.vendorCount = prices.length;
   this.priceLastUpdated = new Date();
   await this.save();
