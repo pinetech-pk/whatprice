@@ -15,7 +15,9 @@ import ProductView from '@/models/ProductView';
 import ViewTransaction from '@/models/ViewTransaction';
 import VendorMetrics from '@/models/VendorMetrics';
 import MasterProduct from '@/models/MasterProduct';
+import MasterProductRequest from '@/models/MasterProductRequest';
 import User from '@/models/User';
+import { deleteImages } from './imageKit';
 
 export interface DeletionResult {
   vendorId: string;
@@ -25,6 +27,9 @@ export interface DeletionResult {
     productViews: number;
     vendorMetrics: number;
     viewTransactionsArchived: number;
+    productRequests: number;
+    imagesDeleted: number;
+    imagesFailed: number;
   };
   masterProductsUpdated: number;
   userDeleted: boolean;
@@ -46,6 +51,9 @@ export async function permanentlyDeleteVendor(vendorId: string): Promise<Deletio
       productViews: 0,
       vendorMetrics: 0,
       viewTransactionsArchived: 0,
+      productRequests: 0,
+      imagesDeleted: 0,
+      imagesFailed: 0,
     },
     masterProductsUpdated: 0,
     userDeleted: false,
@@ -64,7 +72,7 @@ export async function permanentlyDeleteVendor(vendorId: string): Promise<Deletio
     // Get all product IDs for this vendor (needed for MasterProduct updates)
     const vendorProducts = await Product.find(
       { vendorId: vendor._id },
-      { masterProductId: 1, price: 1 }
+      { masterProductId: 1, price: 1, images: 1 }
     );
     const masterProductIds = [
       ...new Set(
@@ -74,15 +82,46 @@ export async function permanentlyDeleteVendor(vendorId: string): Promise<Deletio
       ),
     ];
 
-    // 1. Delete all ProductViews for this vendor
+    // Collect all image URLs from products
+    const productImageUrls: string[] = [];
+    for (const product of vendorProducts) {
+      if (product.images && Array.isArray(product.images)) {
+        productImageUrls.push(...product.images);
+      }
+    }
+
+    // Get all product request images
+    const vendorRequests = await MasterProductRequest.find(
+      { vendorId: vendor._id },
+      { images: 1 }
+    );
+    const requestImageUrls: string[] = [];
+    for (const request of vendorRequests) {
+      if (request.images && Array.isArray(request.images)) {
+        requestImageUrls.push(...request.images);
+      }
+    }
+
+    // Combine all image URLs
+    const allImageUrls = [...productImageUrls, ...requestImageUrls];
+
+    // 1. Delete images from ImageKit
+    if (allImageUrls.length > 0) {
+      console.log(`[VendorCleanup] Deleting ${allImageUrls.length} images from ImageKit...`);
+      const imageResult = await deleteImages(allImageUrls);
+      result.deleted.imagesDeleted = imageResult.deleted;
+      result.deleted.imagesFailed = imageResult.failed;
+    }
+
+    // 2. Delete all ProductViews for this vendor
     const viewsResult = await ProductView.deleteMany({ vendorId: vendor._id });
     result.deleted.productViews = viewsResult.deletedCount || 0;
 
-    // 2. Delete all VendorMetrics for this vendor
+    // 3. Delete all VendorMetrics for this vendor
     const metricsResult = await VendorMetrics.deleteMany({ vendorId: vendor._id });
     result.deleted.vendorMetrics = metricsResult.deletedCount || 0;
 
-    // 3. Archive ViewTransactions (keep for audit trail, but anonymize)
+    // 4. Archive ViewTransactions (keep for audit trail, but anonymize)
     const transactionsResult = await ViewTransaction.updateMany(
       { vendorId: vendor._id },
       {
@@ -94,27 +133,32 @@ export async function permanentlyDeleteVendor(vendorId: string): Promise<Deletio
     );
     result.deleted.viewTransactionsArchived = transactionsResult.modifiedCount || 0;
 
-    // 4. Delete all Products for this vendor
+    // 5. Delete all MasterProductRequests for this vendor
+    const requestsResult = await MasterProductRequest.deleteMany({ vendorId: vendor._id });
+    result.deleted.productRequests = requestsResult.deletedCount || 0;
+
+    // 6. Delete all Products for this vendor
     const productsResult = await Product.deleteMany({ vendorId: vendor._id });
     result.deleted.products = productsResult.deletedCount || 0;
 
-    // 5. Update MasterProduct aggregates (recalculate prices and vendor counts)
+    // 7. Update MasterProduct aggregates (recalculate prices and vendor counts)
     for (const mpId of masterProductIds) {
       await updateMasterProductAggregates(mpId);
       result.masterProductsUpdated++;
     }
 
-    // 6. Delete the User account associated with this vendor
+    // 8. Delete the User account associated with this vendor
     if (vendor.userId) {
       await User.deleteOne({ _id: vendor.userId });
       result.userDeleted = true;
     }
 
-    // 7. Finally, delete the Vendor record itself
+    // 9. Finally, delete the Vendor record itself
     await Vendor.deleteOne({ _id: vendor._id });
 
     result.success = true;
     console.log(`[VendorCleanup] Permanently deleted vendor: ${vendor.storeName} (${vendorId})`);
+    console.log(`[VendorCleanup] Summary:`, JSON.stringify(result.deleted, null, 2));
 
     return result;
   } catch (error) {

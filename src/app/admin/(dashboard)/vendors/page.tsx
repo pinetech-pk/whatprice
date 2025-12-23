@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Search,
   Filter,
@@ -382,20 +383,20 @@ export default function AdminVendorsPage() {
                   {vendors.map((vendor) => (
                     <tr key={vendor._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <Link href={`/admin/vendors/${vendor._id}`} className="flex items-center gap-3 group">
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
                             {vendor.storeName.charAt(0)}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-medium text-gray-900">{vendor.storeName}</p>
+                              <p className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{vendor.storeName}</p>
                               {vendor.isFeatured && (
                                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                               )}
                             </div>
                             <p className="text-sm text-gray-500">{vendor.email}</p>
                           </div>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-6 py-4">
                         {getStatusBadge(vendor.verificationStatus)}
@@ -422,6 +423,14 @@ export default function AdminVendorsPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {/* View Details - always visible */}
+                          <Link
+                            href={`/admin/vendors/${vendor._id}`}
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </Link>
                           {showTrashed ? (
                             /* Trashed vendors actions */
                             <>
