@@ -28,12 +28,41 @@ interface RegisterRequest {
   website?: string;
   description?: string;
 
-  // Address
-  street: string;
+  // Address - simplified for registration
   city: string;
-  state: string;
-  zipCode: string;
+  address?: string;  // Optional street address
+  street?: string;   // Alternative field name
+  state?: string;    // Optional - will be derived from city
+  zipCode?: string;  // Optional - will use default
 }
+
+// Map Pakistani cities to their provinces/states
+const cityToState: Record<string, string> = {
+  'karachi': 'Sindh',
+  'lahore': 'Punjab',
+  'islamabad': 'Islamabad Capital Territory',
+  'rawalpindi': 'Punjab',
+  'faisalabad': 'Punjab',
+  'multan': 'Punjab',
+  'peshawar': 'Khyber Pakhtunkhwa',
+  'quetta': 'Balochistan',
+  'sialkot': 'Punjab',
+  'gujranwala': 'Punjab',
+  'hyderabad': 'Sindh',
+  'gujrat': 'Punjab',
+  'bahawalpur': 'Punjab',
+  'sargodha': 'Punjab',
+  'sukkur': 'Sindh',
+  'larkana': 'Sindh',
+  'sheikhupura': 'Punjab',
+  'mirpur khas': 'Sindh',
+  'rahim yar khan': 'Punjab',
+  'mardan': 'Khyber Pakhtunkhwa',
+  'abbottabad': 'Khyber Pakhtunkhwa',
+  'mingora': 'Khyber Pakhtunkhwa',
+  'dera ghazi khan': 'Punjab',
+  'nawabshah': 'Sindh',
+};
 
 export async function POST(request: Request) {
   try {
@@ -53,8 +82,8 @@ export async function POST(request: Request) {
 
     const body: RegisterRequest = await request.json();
 
-    // Validate required fields
-    const requiredFields = ['email', 'password', 'firstName', 'lastName', 'storeName', 'phone', 'street', 'city', 'state', 'zipCode'];
+    // Validate required fields (simplified - only essential fields)
+    const requiredFields = ['email', 'password', 'firstName', 'lastName', 'storeName', 'phone', 'city'];
     for (const field of requiredFields) {
       if (!body[field as keyof RegisterRequest]) {
         return NextResponse.json(
@@ -63,6 +92,16 @@ export async function POST(request: Request) {
         );
       }
     }
+
+    // Derive state from city if not provided
+    const cityLower = body.city.toLowerCase().trim();
+    const derivedState = body.state || cityToState[cityLower] || 'Punjab';
+
+    // Use address or street, default to "Not provided"
+    const streetAddress = body.street || body.address || 'Address pending';
+
+    // Use provided zipCode or default
+    const zipCode = body.zipCode || '00000';
 
     // Validate email
     if (!validateEmail(body.email)) {
@@ -145,10 +184,10 @@ export async function POST(request: Request) {
       website: body.website?.trim(),
       description: body.description ? sanitizeInput(body.description) : undefined,
       address: {
-        street: sanitizeInput(body.street),
+        street: sanitizeInput(streetAddress),
         city: sanitizeInput(body.city),
-        state: sanitizeInput(body.state),
-        zipCode: sanitizeInput(body.zipCode),
+        state: sanitizeInput(derivedState),
+        zipCode: sanitizeInput(zipCode),
         country: 'Pakistan',
       },
       verificationStatus: 'pending',
